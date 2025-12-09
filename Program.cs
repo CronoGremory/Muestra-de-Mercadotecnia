@@ -7,13 +7,10 @@ var builder = WebApplication.CreateBuilder(args);
 // 1. CONFIGURACIÓN DE SERVICIOS
 // ==========================================
 
-// Agregar servicios MVC (Vistas y Controladores)
 builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR(); // Servicio de Sockets
 
-// Agregar servicio de Sockets (SignalR)
-builder.Services.AddSignalR(); 
-
-// Configuración de Sesión (Para el Login)
+// Configuración de Sesión
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -21,9 +18,6 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
-
-// (Opcional) Si usaras inyección de dependencias para Oracle, iría aquí.
-// builder.Services.AddTransient<OracleConnection>(...);
 
 var app = builder.Build();
 
@@ -39,22 +33,47 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Habilitar archivos estáticos (CSS, JS, Imágenes)
+// A) Habilitar carpeta wwwroot (por defecto)
 app.UseStaticFiles();
 
-// Habilitar enrutamiento
+// B) HABILITAR TUS CARPETAS PERSONALIZADAS (Modelos, Estilos, Recursos)
+// Esto soluciona el ERROR 404
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(builder.Environment.ContentRootPath, "Modelos")),
+    RequestPath = "/Modelos"
+});
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(builder.Environment.ContentRootPath, "Estilos")),
+    RequestPath = "/Estilos"
+});
+
+// Verifica si existe la carpeta Recursos antes de agregarla para evitar errores
+string rutaRecursos = Path.Combine(builder.Environment.ContentRootPath, "Recursos");
+if (Directory.Exists(rutaRecursos))
+{
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new PhysicalFileProvider(rutaRecursos),
+        RequestPath = "/Recursos"
+    });
+}
+
+// C) Resto de la configuración
 app.UseRouting();
 
-// Habilitar sesión antes de autorización
 app.UseSession();
 app.UseAuthorization();
 
-// Mapear rutas de controladores
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// Mapear la ruta del Socket (SignalR)
 app.MapHub<WhatsappHub>("/whatsappHub");
 
 app.Run();
