@@ -27,11 +27,10 @@ namespace Muestra.Controllers
             _hubContext = hubContext;
         }
 
-        // --- VARIABLES ESTÁTICAS ---
+        // --- VARIABLES DE CONFIGURACIÓN ---
         private static DateTime fechaEntrega = new DateTime(2025, 12, 10);
         private static IWebDriver? _driver;
         private static int ultimoAvisoEnviado = -999;
-        // Semáforo para que no se atropellen los mensajes
         private static readonly SemaphoreSlim _browserLock = new SemaphoreSlim(1, 1);
 
         // --- 1. INICIAR BOT ---
@@ -63,11 +62,9 @@ namespace Muestra.Controllers
         public IActionResult Activar([FromQuery] string telefono)
         {
             if (string.IsNullOrEmpty(telefono)) return BadRequest("Número vacío");
-
             try
             {
                 string connectionString = _configuration.GetConnectionString("MyDbConnection") ?? "";
-                
                 using (OracleConnection con = new OracleConnection(connectionString))
                 {
                     con.Open();
@@ -80,10 +77,7 @@ namespace Muestra.Controllers
                 }
                 return Ok("Guardado");
             }
-            catch (Exception ex)
-            {
-                return BadRequest("Error Oracle: " + ex.Message);
-            }
+            catch (Exception ex) { return BadRequest("Error Oracle: " + ex.Message); }
         }
 
         // --- 3. VER NUMEROS ---
@@ -94,7 +88,6 @@ namespace Muestra.Controllers
             try
             {
                 string connectionString = _configuration.GetConnectionString("MyDbConnection") ?? "";
-
                 using (OracleConnection con = new OracleConnection(connectionString))
                 {
                     con.Open();
@@ -111,10 +104,7 @@ namespace Muestra.Controllers
                 }
                 return Ok(new { total = lista.Count, lista = lista });
             }
-            catch (Exception ex) 
-            { 
-                return BadRequest("Error Oracle: " + ex.Message); 
-            }
+            catch (Exception ex) { return BadRequest("Error Oracle: " + ex.Message); }
         }
 
         // --- 4. VERIFICAR FECHAS (ENVIO MASIVO) ---
@@ -126,24 +116,19 @@ namespace Muestra.Controllers
             DateTime hoy = DateTime.Today;
             int diasRestantes = (int)(fechaEntrega - hoy).TotalDays;
 
-            // Anti-Spam
             if (diasRestantes == ultimoAvisoEnviado)
             {
-                await _hubContext.Clients.All.SendAsync("RecibirLog", "⚠️ Ya se enviaron los mensajes de hoy.");
+                await _hubContext.Clients.All.SendAsync("RecibirLog", "⚠️ SPAM DETECTADO: Ya enviaste mensajes hoy.");
                 return Ok(new { estado = "SPAM DETECTADO" });
             }
 
-            // Obtener números
-            var actionResult = VerNumeros();
-            if (actionResult is BadRequestObjectResult) return BadRequest(new { estado = "Error BD" });
+            var actionResult = VerNumeros() as OkObjectResult;
+            if (actionResult?.Value == null) return BadRequest(new { estado = "Error BD" });
 
-            var okResult = actionResult as OkObjectResult;
-            if (okResult?.Value == null) return BadRequest(new { estado = "Error datos nulos" });
-
-            dynamic data = okResult.Value;
+            dynamic data = actionResult.Value;
             List<string> numeros = data.lista;
 
-            if (numeros.Count == 0) return Ok(new { estado = "Sin números registrados." });
+            if (numeros.Count == 0) return Ok(new { estado = "Sin números." });
 
             await _hubContext.Clients.All.SendAsync("RecibirLog", $"🚀 Iniciando envío a {numeros.Count} usuarios...");
 
@@ -152,10 +137,10 @@ namespace Muestra.Controllers
 
             foreach (var num in numeros)
             {
-                // Aquí llamamos a la función "Blindada"
+                // Llama a la función blindada
                 bool exito = EnviarMensajeSelenium(num, mensaje);
                 
-                string estado = exito ? "Enviado ✅" : "Falló ❌ (Inválido/Error)";
+                string estado = exito ? "Enviado ✅" : "Falló ❌ (No tiene WhatsApp o Error)";
                 await _hubContext.Clients.All.SendAsync("RecibirProgreso", num, estado);
                 
                 if (exito) enviados++;
@@ -171,61 +156,60 @@ namespace Muestra.Controllers
         [HttpGet("test-envio")]
         public IActionResult TestEnvio(string telefono)
         {
-            if (_driver == null) return BadRequest("El bot está apagado.");
+            if (_driver == null) return BadRequest("Bot apagado.");
             bool result = EnviarMensajeSelenium(telefono, "🤖 Prueba de conexión.");
-            return Ok(result ? "Enviado con éxito." : "Fallo al enviar (revisa el número).");
+            return Ok(result ? "Enviado." : "Falló.");
         }
 
-        // --- MÉTODOS PRIVADOS (Aquí estaba el error) ---
-        
+        // ============================================================
+        // 🛡️ FUNCIÓN BLINDADA PARA ENVIAR MENSAJES (PLAN A y PLAN B)
+        // ============================================================
         private bool EnviarMensajeSelenium(string tel, string msj)
         {
-            _browserLock.Wait(); // Esperar turno
+            _browserLock.Wait(); // Bloquea para que nadie interrumpa
             try
             {
                 string url = $"https://web.whatsapp.com/send?phone={tel}&text={Uri.EscapeDataString(msj)}";
                 _driver!.Navigate().GoToUrl(url);
 
-                // Esperar máximo 10 segundos a que cargue
-                var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
+                // Configuración de Espera: 20 segundos máximo
+                var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(20));
                 
+                // IMPORTANTÍSIMO: Ignorar el error 'NoSuchElement' mientras espera
+                wait.IgnoreExceptionTypes(typeof(NoSuchElementException));
+
                 try 
                 {
-                    // Intentamos buscar el botón
+                    // --- PLAN A: Buscar el botón 'Enviar' ---
                     var btnEnviar = wait.Until(d => d.FindElement(By.CssSelector("span[data-icon='send']")));
-                    Thread.Sleep(500); // Pequeña pausa humana
+                    Thread.Sleep(800); // Pausa humana
                     btnEnviar.Click();
-                    Thread.Sleep(2000); // Esperar a que salga el mensaje
-                    return true;
                 }
                 catch (WebDriverTimeoutException)
                 {
-                    // Si pasaron 10 segs y no apareció, asumimos que el número está mal
-                    return false; 
-                }
-                catch (NoSuchElementException)
-                {
-                    // Si el elemento no existe, retornamos falso en lugar de explotar
-                    return false;
-                }
-                catch 
-                {
-                    // Último intento: Dar Enter por si acaso
+                    // --- PLAN B: Si no aparece el botón, dar ENTER ---
+                    // Esto pasa si el botón está oculto pero el foco está en el chat
                     try {
-                        _driver.SwitchTo().ActiveElement().SendKeys(Keys.Enter);
-                        Thread.Sleep(1000);
-                        return true;
-                    } catch { return false; }
+                        _driver!.SwitchTo().ActiveElement().SendKeys(Keys.Enter);
+                    } 
+                    catch { 
+                        // Si falla el Plan B, el número probablemente no existe
+                        return false; 
+                    }
                 }
+
+                // Esperamos un poco para asegurar que salga el mensaje
+                Thread.Sleep(2000);
+                return true;
             }
             catch 
             {
-                // Si falla el navegador por completo
+                // Si ocurre cualquier otro error raro, no cerramos el programa, solo retornamos false
                 return false; 
             }
             finally 
             { 
-                _browserLock.Release(); // Liberar turno SIEMPRE
+                _browserLock.Release(); // Liberamos el turno siempre
             }
         }
     }
