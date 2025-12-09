@@ -1,64 +1,60 @@
 using Microsoft.Extensions.FileProviders;
-using Oracle.ManagedDataAccess.Client;
-using System.Data; // <-- Añade esto, lo necesitarás para los controladores
+using Muestra.Hubs; // Importante para el Socket
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(); // El paquete que instalaste
+// ==========================================
+// 1. CONFIGURACIÓN DE SERVICIOS
+// ==========================================
 
-var connectionString = builder.Configuration.GetConnectionString("MyDbConnection");
+// Agregar servicios MVC (Vistas y Controladores)
+builder.Services.AddControllersWithViews();
 
-builder.Services.AddTransient<OracleConnection>(_ => new OracleConnection(connectionString));
+// Agregar servicio de Sockets (SignalR)
+builder.Services.AddSignalR(); 
+
+// Configuración de Sesión (Para el Login)
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+// (Opcional) Si usaras inyección de dependencias para Oracle, iría aquí.
+// builder.Services.AddTransient<OracleConnection>(...);
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+// ==========================================
+// 2. CONFIGURACIÓN DEL PIPELINE HTTP
+// ==========================================
+
+if (!app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
 }
 
-app.UseDefaultFiles(new DefaultFilesOptions
-{
-    FileProvider = new PhysicalFileProvider(builder.Environment.ContentRootPath),
-    DefaultFileNames = new List<string> { "Modelos/index.html" }
-});
+app.UseHttpsRedirection();
 
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(builder.Environment.ContentRootPath)
-});
-
-app.MapControllers();
-app.Run();
-
-using Muestra.Hubs; // <--- AGREGAR ESTO ARRIBA CON LOS IMPORTS
-
-var builder = WebApplication.CreateBuilder(args);
-
-// ... (otras configuraciones)
-
-// Agregar servicios al contenedor
-builder.Services.AddControllersWithViews();
-builder.Services.AddSignalR(); // <--- AGREGAR ESTO (Activa el servicio)
-
-
-var app = builder.Build();
-
-// ... (configuración de pipeline)
-
+// Habilitar archivos estáticos (CSS, JS, Imágenes)
 app.UseStaticFiles();
+
+// Habilitar enrutamiento
 app.UseRouting();
 
-// ... (auth y sesiones)
+// Habilitar sesión antes de autorización
+app.UseSession();
+app.UseAuthorization();
 
+// Mapear rutas de controladores
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// Mapear la ruta del socket
-app.MapHub<WhatsappHub>("/WhatsappHub"); // <--- AGREGAR ESTO AL FINAL
+// Mapear la ruta del Socket (SignalR)
+app.MapHub<WhatsappHub>("/whatsappHub");
 
 app.Run();
