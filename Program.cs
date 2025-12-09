@@ -59,6 +59,6 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 // Mapear la ruta del socket
-app.MapHub<WhatsappHub>("/whatsappHub"); // <--- AGREGAR ESTO AL FINAL
+app.MapHub<WhatsappHub>("/WhatsappHub"); // <--- AGREGAR ESTO AL FINAL
 
 app.Run();
