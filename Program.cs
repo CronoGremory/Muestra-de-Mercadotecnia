@@ -1,5 +1,6 @@
 using Microsoft.Extensions.FileProviders;
-using Muestra.Hubs; // Importante para el Socket
+using Muestra.Hubs; 
+using Oracle.ManagedDataAccess.Client; // <--- NECESARIO PARA QUE EL LOGIN FUNCIONE
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,7 +9,12 @@ var builder = WebApplication.CreateBuilder(args);
 // ==========================================
 
 builder.Services.AddControllersWithViews();
-builder.Services.AddSignalR(); // Servicio de Sockets
+builder.Services.AddSignalR(); 
+
+// 1.1 CONEXIÓN A BASE DE DATOS (IMPORTANTE PARA EL LOGIN)
+// Leemos la conexión de appsettings y la inyectamos para que AuthController la use.
+string connectionString = builder.Configuration.GetConnectionString("MyDbConnection") ?? "";
+builder.Services.AddTransient<OracleConnection>(_ => new OracleConnection(connectionString));
 
 // Configuración de Sesión
 builder.Services.AddDistributedMemoryCache();
@@ -33,11 +39,8 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// A) Habilitar carpeta wwwroot (por defecto)
+// Habilitar carpetas estáticas (wwwroot, Modelos, Estilos, Recursos)
 app.UseStaticFiles();
-
-// B) HABILITAR TUS CARPETAS PERSONALIZADAS (Modelos, Estilos, Recursos)
-// Esto soluciona el ERROR 404
 
 app.UseStaticFiles(new StaticFileOptions
 {
@@ -53,7 +56,6 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = "/Estilos"
 });
 
-// Verifica si existe la carpeta Recursos antes de agregarla para evitar errores
 string rutaRecursos = Path.Combine(builder.Environment.ContentRootPath, "Recursos");
 if (Directory.Exists(rutaRecursos))
 {
@@ -64,9 +66,7 @@ if (Directory.Exists(rutaRecursos))
     });
 }
 
-// C) Resto de la configuración
 app.UseRouting();
-
 app.UseSession();
 app.UseAuthorization();
 
