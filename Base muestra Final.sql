@@ -310,7 +310,55 @@ INSERT INTO Roles (IdRol, NombreRol) VALUES (5, 'Evaluador');
 INSERT INTO Categorias (IdCategoria, NombreCategoria) VALUES (categorias_seq.NEXTVAL, 'Retail Revolution');
 INSERT INTO Categorias (IdCategoria, NombreCategoria) VALUES (categorias_seq.NEXTVAL, 'Fresh Creations');
 
+SELECT U.Nombre
+FROM Usuarios U
+WHERE U.IdRol = 5 
+AND NOT EXISTS (
+    SELECT P.IdProyecto
+    FROM Proyectos P
+    WHERE NOT EXISTS (
+        SELECT A.IdAsignacion
+        FROM Asignaciones A
+        WHERE A.IdUsuario_Evaluador = U.IdUsuario
+        AND A.IdProyecto = P.IdProyecto
+    )
+);
 
+SELECT P.NombreProyecto
+FROM Proyectos P
+WHERE (
+    SELECT COUNT(DISTINCT E.IdCriterio)
+    FROM Evaluaciones E
+    JOIN Asignaciones A ON E.IdAsignacion = A.IdAsignacion
+    WHERE A.IdProyecto = P.IdProyecto
+) = (
+    SELECT COUNT(*)
+    FROM Criterios C
+    WHERE C.IdCategoria = P.IdCategoria
+);
+
+P.NombreProyecto, 
+    E.Nombre AS Nombre_Equipo, 
+    C.NombreCategoria, 
+    P.Estado,
+    P.CalificacionFinal
+FROM Proyectos P
+JOIN Equipos E ON P.IdEquipo = E.IdEquipo
+JOIN Categorias C ON P.IdCategoria = C.IdCategoria
+ORDER BY P.NombreProyecto;
+
+SELECT 
+    U.Nombre AS Evaluador,
+    P.NombreProyecto,
+    C.NombreCriterio,
+    EV.PuntajeObtenido,
+    EV.Comentarios
+FROM Evaluaciones EV
+JOIN Asignaciones A ON EV.IdAsignacion = A.IdAsignacion
+JOIN Usuarios U ON A.IdUsuario_Evaluador = U.IdUsuario
+JOIN Proyectos P ON A.IdProyecto = P.IdProyecto
+JOIN Criterios C ON EV.IdCriterio = C.IdCriterio
+ORDER BY P.NombreProyecto;
 -- ==========================================================
 -- 6. CONFIRMAR LOS CAMBIOS
 -- ==========================================================
