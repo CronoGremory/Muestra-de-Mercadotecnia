@@ -175,7 +175,7 @@ namespace Muestra.Controllers
                 // Configuración de Espera: 20 segundos máximo
                 var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(20));
                 
-                // IMPORTANTÍSIMO: Ignorar el error 'NoSuchElement' mientras espera
+                // IMPORTANTÍSIMO: Esto evita que el programa explote si no encuentra el botón de inmediato
                 wait.IgnoreExceptionTypes(typeof(NoSuchElementException));
 
                 try 
@@ -187,13 +187,13 @@ namespace Muestra.Controllers
                 }
                 catch (WebDriverTimeoutException)
                 {
-                    // --- PLAN B: Si no aparece el botón, dar ENTER ---
-                    // Esto pasa si el botón está oculto pero el foco está en el chat
+                    // --- PLAN B: Si no aparece el botón en 20 segs ---
+                    // Intentamos dar ENTER en el teclado (a veces el botón está oculto pero el foco está en el chat)
                     try {
                         _driver!.SwitchTo().ActiveElement().SendKeys(Keys.Enter);
                     } 
                     catch { 
-                        // Si falla el Plan B, el número probablemente no existe
+                        // Si falla el Plan B, asumimos que el número es inválido
                         return false; 
                     }
                 }
