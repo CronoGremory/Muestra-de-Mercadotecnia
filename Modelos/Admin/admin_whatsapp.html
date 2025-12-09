@@ -2,8 +2,10 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Panel Admin WhatsApp</title>
+    <title>Panel Admin WhatsApp (En Vivo)</title>
     <link rel="stylesheet" href="../Estilos/styleflujos.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
 
     <style>
         .contenido-card { 
@@ -11,10 +13,11 @@
             padding: 30px; 
             border-radius: 15px; 
             width: 90%; 
-            max-width: 700px; /* Hice el panel un poco más ancho */
+            max-width: 700px; 
             margin: 30px auto; 
             text-align: center; 
             box-shadow: 0 5px 15px rgba(0,0,0,0.2); 
+            position: relative; /* Para posicionar el badge */
         }
 
         .status-box { 
@@ -23,7 +26,7 @@
             padding: 15px; 
             border-radius: 5px; 
             text-align: left; 
-            height: 120px; 
+            height: 150px; /* Un poco más alto para ver mejor los logs */
             overflow-y: auto; 
             font-family: monospace; 
             border: 2px solid #333; 
@@ -38,13 +41,12 @@
             margin-top: 15px; 
         }
 
-        /* --- ESTILOS NUEVOS PARA LA LISTA DE NÚMEROS --- */
         .lista-numeros-container {
             margin-top: 20px;
             border: 1px solid #ddd;
             border-radius: 8px;
             overflow: hidden;
-            display: none; /* Oculto por defecto hasta que carguen datos */
+            display: none; 
         }
         
         .lista-header {
@@ -71,7 +73,6 @@
         .numero-item:last-child { border-bottom: none; }
         .numero-item:hover { background-color: #e9ecef; }
 
-        /* --- INPUTS DE REGISTRO RÁPIDO --- */
         .registro-rapido {
             background-color: #e8f4f8;
             padding: 15px;
@@ -99,6 +100,29 @@
             font-size: 0.8em;
             margin-left: 5px;
         }
+
+        /* Badge de Conexión Socket */
+        .socket-status {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 0.8em;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: #f0f0f0;
+            padding: 5px 10px;
+            border-radius: 20px;
+        }
+        .dot {
+            height: 10px;
+            width: 10px;
+            background-color: #bbb;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .dot.connected { background-color: #00cc00; box-shadow: 0 0 5px #00cc00; }
+        .dot.error { background-color: #ff0000; }
     </style>
 
 </head>
@@ -107,9 +131,16 @@
     <div class="wrapper">
         <div class="contenido-card">
 
+            <div class="socket-status">
+                <span id="socketDot" class="dot"></span>
+                <span id="socketText" style="color:#555">Conectando...</span>
+            </div>
+
             <h2 style="color: #003153; margin-bottom: 10px;">🤖 Panel de Control WhatsApp</h2>
 
-            <div id="console-log" class="status-box">> Esperando comandos...</div>
+            <div id="console-log" class="status-box">
+                <div style="color:#888">> Inicializando sistema...</div>
+            </div>
 
             <button onclick="iniciar()" class="animated-button" style="width:100%; font-size:1.1em; background: linear-gradient(to right, #25D366, #128C7E);">
                 <span></span><span></span><span></span><span></span>
@@ -126,12 +157,12 @@
             <div class="grid-botones">
                 <button onclick="verNumeros()" class="animated-button orange">
                     <span></span><span></span><span></span><span></span>
-                    📋 Ver Lista de Números
+                    📋 Ver Lista
                 </button>
 
-                <button onclick="testEnvio()" class="animated-button purple">
+                <button onclick="enviarMasivoSocket()" class="animated-button purple">
                     <span></span><span></span><span></span><span></span>
-                    📤 Enviar Prueba
+                    📨 Enviar Masivo (En Vivo)
                 </button>
             </div>
 
@@ -159,39 +190,77 @@
         const API = "/api/whatsapp";
         const logDiv = document.getElementById("console-log");
 
-        function log(msg) {
-            logDiv.innerHTML += `<br>> ${msg}`;
+        // ==========================================
+        // 1. CONFIGURACIÓN DEL SOCKET (SIGNALR)
+        // ==========================================
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/whatsappHub") // Debe coincidir con Program.cs
+            .withAutomaticReconnect()
+            .build();
+
+        // A) Escuchar Logs Generales
+        connection.on("RecibirLog", (mensaje) => {
+            log(mensaje, "#ffff00"); // Amarillo para logs generales
+        });
+
+        // B) Escuchar Progreso de Envíos (Uno por uno)
+        connection.on("RecibirProgreso", (numero, estado) => {
+            const color = estado.includes("✅") ? "#00ff00" : "#ff4444";
+            log(`📱 ${numero}: ${estado}`, color);
+        });
+
+        // C) Iniciar Conexión
+        connection.start()
+            .then(() => {
+                document.getElementById("socketDot").classList.add("connected");
+                document.getElementById("socketText").innerText = "En Vivo";
+                log("✅ Conexión Socket establecida.", "#00ff00");
+            })
+            .catch(err => {
+                document.getElementById("socketDot").classList.add("error");
+                document.getElementById("socketText").innerText = "Error Socket";
+                log("❌ Error Socket: " + err, "red");
+            });
+
+
+        // ==========================================
+        // 2. FUNCIONES DE INTERFAZ
+        // ==========================================
+
+        function log(msg, color = "#0f0") {
+            const time = new Date().toLocaleTimeString();
+            // Inyectamos HTML para soportar colores
+            logDiv.innerHTML += `<div style="color:${color}; margin-bottom:2px;"> <span style="color:#555">[${time}]</span> ${msg}</div>`;
             logDiv.scrollTop = logDiv.scrollHeight;
         }
 
-        // 1. INICIAR
+        // 1. INICIAR BOT
         function iniciar() {
-            log("Intentando iniciar...");
+            log("Intentando iniciar motor...", "#fff");
             fetch(`${API}/iniciar`)
                 .then(r => r.text())
-                .then(msg => {
-                    log("✅ " + msg);
-                    // Iniciamos el chequeo automático cada minuto
-                    setInterval(verificarAutomatico, 60000); 
-                })
-                .catch(e => log("❌ Error al conectar con API."));
+                .then(msg => log("✅ " + msg))
+                .catch(e => log("❌ Error API: " + e, "red"));
         }
 
-        // 2. VER NÚMEROS (Visualmente)
+        // 2. ENVIAR MASIVO (Dispara el evento y el Socket nos responde)
+        function enviarMasivoSocket() {
+            log("🚀 Solicitando envío masivo al servidor...", "#fff");
+            // Llamamos al endpoint que tiene la lógica del socket
+            fetch(`${API}/verificar-fechas`)
+                .catch(e => log("❌ Error al solicitar: " + e, "red"));
+        }
+
+        // 3. VER NÚMEROS (Visualmente)
         function verNumeros() {
-            log("Consultando base de datos...");
+            log("Consultando lista...", "#ccc");
             fetch(`${API}/ver-numeros`)
                 .then(r => r.json())
                 .then(d => {
-                    // Mostrar contenedor
                     document.getElementById('contenedorLista').style.display = 'block';
-                    
-                    // Actualizar contador
                     document.getElementById('totalBadge').innerText = d.total || d.lista.length;
-
-                    // Llenar lista
                     const cuerpo = document.getElementById('listaNumerosBody');
-                    cuerpo.innerHTML = ""; // Limpiar
+                    cuerpo.innerHTML = ""; 
 
                     if (d.lista && d.lista.length > 0) {
                         d.lista.forEach((num, index) => {
@@ -202,65 +271,38 @@
                                 </div>
                             `;
                         });
-                        log(`📊 Lista actualizada: ${d.lista.length} números.`);
+                        log(`📊 Lista actualizada (${d.lista.length})`, "#ccc");
                     } else {
-                        cuerpo.innerHTML = `<div style="padding:15px; text-align:center;">⚠️ No hay números registrados.</div>`;
-                        log("⚠️ Base de datos vacía.");
+                        cuerpo.innerHTML = `<div style="padding:15px; text-align:center;">⚠️ Vacío</div>`;
                     }
                 })
-                .catch(e => log("❌ Error leyendo BD: " + e));
+                .catch(e => log("❌ Error BD", "red"));
         }
 
-        // 3. REGISTRAR MANUALMENTE
+        // 4. REGISTRAR MANUAL
         function registrarManual() {
             const tel = document.getElementById('nuevoTelefono').value;
-            if (!tel) return alert("Escribe un número primero");
+            if (!tel) return alert("Escribe un número");
 
-            log(`Guardando ${tel}...`);
-            
-            // Usamos el endpoint activar
             fetch(`${API}/activar?telefono=${tel}`)
                 .then(response => {
                     if(response.ok) {
-                        log(`✅ Número ${tel} guardado.`);
-                        document.getElementById('nuevoTelefono').value = ""; // Limpiar input
-                        verNumeros(); // Recargar la lista automáticamente
+                        log(`✅ Guardado: ${tel}`);
+                        document.getElementById('nuevoTelefono').value = "";
+                        verNumeros(); 
                     } else {
-                        log("❌ Error al guardar.");
+                        log("❌ Error al guardar", "red");
                     }
-                })
-                .catch(e => log("❌ Error de red: " + e));
+                });
         }
 
-        // 4. TEST DE ENVÍO
-        function testEnvio() {
-            let num = prompt("Ingresa el número para la prueba (Ej: 521...):");
-            if(num) {
-                log(`Enviando test a ${num}...`);
-                fetch(`${API}/test-envio?telefono=${num}`)
-                    .then(r => r.text())
-                    .then(t => log(t))
-                    .catch(e => log("❌ Falló la petición de prueba."));
-            }
-        }
-
-        // 5. FIJAR FECHAgit push origin main
+        // 5. FIJAR FECHA
         function fijarFecha() {
             let f = document.getElementById("fechaInput").value;
-            if(!f) return alert("Selecciona una fecha válida");
-            
+            if(!f) return alert("Fecha inválida");
             fetch(`${API}/set-fecha?nuevaFecha=${f}`)
                 .then(r => r.json())
-                .then(d => log("📅 " + d.mensaje));
-        }
-
-        // 6. CHEQUEO AUTOMÁTICO (Segundo plano)
-        function verificarAutomatico() {
-            fetch(`${API}/verificar-fechas`)
-                .then(r => r.json())
-                .then(d => {
-                    if(d.enviados > 0) log(`📨 AUTO: Se enviaron ${d.enviados} mensajes.`);
-                });
+                .then(d => log("📅 " + d.mensaje, "#ccc"));
         }
     </script>
 

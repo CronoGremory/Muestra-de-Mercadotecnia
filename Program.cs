@@ -33,3 +33,32 @@ app.UseStaticFiles(new StaticFileOptions
 
 app.MapControllers();
 app.Run();
+
+using Muestra.Hubs; // <--- AGREGAR ESTO ARRIBA CON LOS IMPORTS
+
+var builder = WebApplication.CreateBuilder(args);
+
+// ... (otras configuraciones)
+
+// Agregar servicios al contenedor
+builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR(); // <--- AGREGAR ESTO (Activa el servicio)
+
+
+var app = builder.Build();
+
+// ... (configuración de pipeline)
+
+app.UseStaticFiles();
+app.UseRouting();
+
+// ... (auth y sesiones)
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+// Mapear la ruta del socket
+app.MapHub<WhatsappHub>("/whatsappHub"); // <--- AGREGAR ESTO AL FINAL
+
+app.Run();
