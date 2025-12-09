@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration; // Necesario para leer la config del Login
+using Microsoft.Extensions.Configuration; 
 
 namespace Muestra.Controllers
 {
@@ -27,14 +27,13 @@ namespace Muestra.Controllers
             _hubContext = hubContext;
         }
 
-        // --- VARIABLES ESTÁTICAS ---
+        // Variables Estáticas
         private static DateTime fechaEntrega = new DateTime(2025, 12, 10);
         private static IWebDriver? _driver;
         private static int ultimoAvisoEnviado = -999;
         private static readonly SemaphoreSlim _browserLock = new SemaphoreSlim(1, 1);
 
-        // --- MÉTODOS PÚBLICOS ---
-
+        // --- INICIAR BOT ---
         [HttpGet("iniciar")]
         public IActionResult IniciarBot()
         {
@@ -42,13 +41,12 @@ namespace Muestra.Controllers
             try
             {
                 var options = new ChromeOptions();
-                // Ruta para guardar sesión (evita escanear QR siempre)
                 string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
                 string path = Path.Combine(appData, "WhatsAppBot_Sesion_FINAL");
                 if (!Directory.Exists(path)) Directory.CreateDirectory(path);
                 
                 options.AddArgument($"user-data-dir={path}");
-                options.AddArgument("--no-sandbox");
+                options.AddArgument("--no-sandbox"); 
                 
                 _driver = new ChromeDriver(options);
                 _driver.Manage().Window.Maximize();
@@ -59,6 +57,7 @@ namespace Muestra.Controllers
             catch (Exception ex) { return BadRequest("Error al abrir Chrome: " + ex.Message); }
         }
 
+        // --- ACTIVAR (GUARDAR NUMERO) ---
         [HttpGet("activar")]
         public IActionResult Activar([FromQuery] string telefono)
         {
@@ -66,7 +65,7 @@ namespace Muestra.Controllers
 
             try
             {
-                // Usamos la misma conexión que el Login
+                // El ?? "" arregla la advertencia amarilla
                 string connectionString = _configuration.GetConnectionString("MyDbConnection") ?? "";
                 
                 using (OracleConnection con = new OracleConnection(connectionString))
@@ -83,11 +82,12 @@ namespace Muestra.Controllers
             }
             catch (Exception ex)
             {
-                // ESTO ES CLAVE: Devuelve el error exacto para que lo veas
+                // Muestra el error real para saber qué pasa
                 return BadRequest("Error Oracle: " + ex.Message);
             }
         }
 
+        // --- VER NUMEROS ---
         [HttpGet("ver-numeros")]
         public IActionResult VerNumeros()
         {
@@ -118,8 +118,7 @@ namespace Muestra.Controllers
             }
         }
 
-        // --- MÉTODOS DE ENVÍO (SOCKETS) ---
-
+        // --- VERIFICAR FECHAS (ENVIO MASIVO) ---
         [HttpGet("verificar-fechas")]
         public async Task<IActionResult> VerificarFechas()
         {
@@ -128,18 +127,23 @@ namespace Muestra.Controllers
             DateTime hoy = DateTime.Today;
             int diasRestantes = (int)(fechaEntrega - hoy).TotalDays;
 
-            // Anti-Spam
+            // Anti-Spam (Esto arregla la advertencia de variable no usada)
             if (diasRestantes == ultimoAvisoEnviado)
             {
                 await _hubContext.Clients.All.SendAsync("RecibirLog", "⚠️ Ya se enviaron los mensajes de hoy.");
                 return Ok(new { estado = "SPAM DETECTADO" });
             }
 
-            // Obtener números (reutilizamos lógica interna)
-            var result = VerNumeros() as OkObjectResult;
-            if (result == null) return BadRequest(new { estado = "Error al leer BD" });
-            
-            dynamic data = result.Value;
+            // Obtener números (Llamada interna segura)
+            var actionResult = VerNumeros();
+            if (actionResult is BadRequestObjectResult errorResult) 
+            {
+                return BadRequest(new { estado = "Error BD: " + errorResult.Value });
+            }
+
+            // Extracción segura de datos para evitar advertencia 'dynamic'
+            var okResult = actionResult as OkObjectResult;
+            dynamic data = okResult!.Value!; // El ! le dice a C# "confía en mí, no es nulo"
             List<string> numeros = data.lista;
 
             if (numeros.Count == 0) return Ok(new { estado = "Sin números registrados." });
@@ -152,8 +156,7 @@ namespace Muestra.Controllers
             foreach (var num in numeros)
             {
                 bool exito = EnviarMensajeSelenium(num, mensaje);
-                string icono = exito ? "✅" : "❌";
-                await _hubContext.Clients.All.SendAsync("RecibirProgreso", num, exito ? "Enviado" : "Falló");
+                await _hubContext.Clients.All.SendAsync("RecibirProgreso", num, exito ? "Enviado ✅" : "Falló ❌");
                 if (exito) enviados++;
             }
 
@@ -163,6 +166,7 @@ namespace Muestra.Controllers
             return Ok(new { total = numeros.Count, enviados = enviados });
         }
 
+        // --- TEST ENVIO ---
         [HttpGet("test-envio")]
         public IActionResult TestEnvio(string telefono)
         {
@@ -171,8 +175,7 @@ namespace Muestra.Controllers
             return Ok(result ? "Enviado con éxito." : "Fallo al enviar.");
         }
 
-        // --- HELPERS PRIVADOS ---
-
+        // --- HELPERS ---
         private bool EnviarMensajeSelenium(string tel, string msj)
         {
             _browserLock.Wait();
