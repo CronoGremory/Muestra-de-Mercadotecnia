@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration; 
+using Microsoft.Extensions.Configuration;
 
 namespace Muestra.Controllers
 {
@@ -27,13 +27,14 @@ namespace Muestra.Controllers
             _hubContext = hubContext;
         }
 
-        // Variables Estáticas
+        // --- VARIABLES ESTÁTICAS ---
         private static DateTime fechaEntrega = new DateTime(2025, 12, 10);
         private static IWebDriver? _driver;
         private static int ultimoAvisoEnviado = -999;
+        // Semáforo para que no se atropellen los mensajes
         private static readonly SemaphoreSlim _browserLock = new SemaphoreSlim(1, 1);
 
-        // --- INICIAR BOT ---
+        // --- 1. INICIAR BOT ---
         [HttpGet("iniciar")]
         public IActionResult IniciarBot()
         {
@@ -46,7 +47,7 @@ namespace Muestra.Controllers
                 if (!Directory.Exists(path)) Directory.CreateDirectory(path);
                 
                 options.AddArgument($"user-data-dir={path}");
-                options.AddArgument("--no-sandbox"); 
+                options.AddArgument("--no-sandbox");
                 
                 _driver = new ChromeDriver(options);
                 _driver.Manage().Window.Maximize();
@@ -57,7 +58,7 @@ namespace Muestra.Controllers
             catch (Exception ex) { return BadRequest("Error al abrir Chrome: " + ex.Message); }
         }
 
-        // --- ACTIVAR (GUARDAR NUMERO) ---
+        // --- 2. ACTIVAR (GUARDAR NUMERO) ---
         [HttpGet("activar")]
         public IActionResult Activar([FromQuery] string telefono)
         {
@@ -65,7 +66,6 @@ namespace Muestra.Controllers
 
             try
             {
-                // El ?? "" arregla la advertencia amarilla
                 string connectionString = _configuration.GetConnectionString("MyDbConnection") ?? "";
                 
                 using (OracleConnection con = new OracleConnection(connectionString))
@@ -82,12 +82,11 @@ namespace Muestra.Controllers
             }
             catch (Exception ex)
             {
-                // Muestra el error real para saber qué pasa
                 return BadRequest("Error Oracle: " + ex.Message);
             }
         }
 
-        // --- VER NUMEROS ---
+        // --- 3. VER NUMEROS ---
         [HttpGet("ver-numeros")]
         public IActionResult VerNumeros()
         {
@@ -118,7 +117,7 @@ namespace Muestra.Controllers
             }
         }
 
-        // --- VERIFICAR FECHAS (ENVIO MASIVO) ---
+        // --- 4. VERIFICAR FECHAS (ENVIO MASIVO) ---
         [HttpGet("verificar-fechas")]
         public async Task<IActionResult> VerificarFechas()
         {
@@ -127,23 +126,21 @@ namespace Muestra.Controllers
             DateTime hoy = DateTime.Today;
             int diasRestantes = (int)(fechaEntrega - hoy).TotalDays;
 
-            // Anti-Spam (Esto arregla la advertencia de variable no usada)
+            // Anti-Spam
             if (diasRestantes == ultimoAvisoEnviado)
             {
                 await _hubContext.Clients.All.SendAsync("RecibirLog", "⚠️ Ya se enviaron los mensajes de hoy.");
                 return Ok(new { estado = "SPAM DETECTADO" });
             }
 
-            // Obtener números (Llamada interna segura)
+            // Obtener números
             var actionResult = VerNumeros();
-            if (actionResult is BadRequestObjectResult errorResult) 
-            {
-                return BadRequest(new { estado = "Error BD: " + errorResult.Value });
-            }
+            if (actionResult is BadRequestObjectResult) return BadRequest(new { estado = "Error BD" });
 
-            // Extracción segura de datos para evitar advertencia 'dynamic'
             var okResult = actionResult as OkObjectResult;
-            dynamic data = okResult!.Value!; // El ! le dice a C# "confía en mí, no es nulo"
+            if (okResult?.Value == null) return BadRequest(new { estado = "Error datos nulos" });
+
+            dynamic data = okResult.Value;
             List<string> numeros = data.lista;
 
             if (numeros.Count == 0) return Ok(new { estado = "Sin números registrados." });
@@ -155,8 +152,12 @@ namespace Muestra.Controllers
 
             foreach (var num in numeros)
             {
+                // Aquí llamamos a la función "Blindada"
                 bool exito = EnviarMensajeSelenium(num, mensaje);
-                await _hubContext.Clients.All.SendAsync("RecibirProgreso", num, exito ? "Enviado ✅" : "Falló ❌");
+                
+                string estado = exito ? "Enviado ✅" : "Falló ❌ (Inválido/Error)";
+                await _hubContext.Clients.All.SendAsync("RecibirProgreso", num, estado);
+                
                 if (exito) enviados++;
             }
 
@@ -166,35 +167,50 @@ namespace Muestra.Controllers
             return Ok(new { total = numeros.Count, enviados = enviados });
         }
 
-        // --- TEST ENVIO ---
+        // --- 5. TEST ENVIO ---
         [HttpGet("test-envio")]
         public IActionResult TestEnvio(string telefono)
         {
             if (_driver == null) return BadRequest("El bot está apagado.");
             bool result = EnviarMensajeSelenium(telefono, "🤖 Prueba de conexión.");
-            return Ok(result ? "Enviado con éxito." : "Fallo al enviar.");
+            return Ok(result ? "Enviado con éxito." : "Fallo al enviar (revisa el número).");
         }
 
-        // --- HELPERS ---
+        // --- MÉTODOS PRIVADOS (Aquí estaba el error) ---
+        
         private bool EnviarMensajeSelenium(string tel, string msj)
         {
-            _browserLock.Wait();
+            _browserLock.Wait(); // Esperar turno
             try
             {
                 string url = $"https://web.whatsapp.com/send?phone={tel}&text={Uri.EscapeDataString(msj)}";
                 _driver!.Navigate().GoToUrl(url);
 
-                var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(15));
+                // Esperar máximo 10 segundos a que cargue
+                var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
+                
                 try 
                 {
+                    // Intentamos buscar el botón
                     var btnEnviar = wait.Until(d => d.FindElement(By.CssSelector("span[data-icon='send']")));
-                    Thread.Sleep(500);
+                    Thread.Sleep(500); // Pequeña pausa humana
                     btnEnviar.Click();
-                    Thread.Sleep(2000); 
+                    Thread.Sleep(2000); // Esperar a que salga el mensaje
                     return true;
+                }
+                catch (WebDriverTimeoutException)
+                {
+                    // Si pasaron 10 segs y no apareció, asumimos que el número está mal
+                    return false; 
+                }
+                catch (NoSuchElementException)
+                {
+                    // Si el elemento no existe, retornamos falso en lugar de explotar
+                    return false;
                 }
                 catch 
                 {
+                    // Último intento: Dar Enter por si acaso
                     try {
                         _driver.SwitchTo().ActiveElement().SendKeys(Keys.Enter);
                         Thread.Sleep(1000);
@@ -202,8 +218,15 @@ namespace Muestra.Controllers
                     } catch { return false; }
                 }
             }
-            catch { return false; }
-            finally { _browserLock.Release(); }
+            catch 
+            {
+                // Si falla el navegador por completo
+                return false; 
+            }
+            finally 
+            { 
+                _browserLock.Release(); // Liberar turno SIEMPRE
+            }
         }
     }
 }
