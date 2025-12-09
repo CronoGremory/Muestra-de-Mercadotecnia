@@ -9,10 +9,10 @@ var builder = WebApplication.CreateBuilder(args);
 // ==========================================
 
 builder.Services.AddControllersWithViews();
-builder.Services.AddSignalR(); 
+builder.Services.AddSignalR(); // Servicio de Sockets
 
-// 1.1 CONEXIÓN A BASE DE DATOS (IMPORTANTE PARA EL LOGIN)
-// Leemos la conexión de appsettings y la inyectamos para que AuthController la use.
+// 1.1 CONEXIÓN A BASE DE DATOS (Arreglo del Login y Advertencia NULL)
+// El '?? ""' arregla la advertencia amarilla de tu imagen.
 string connectionString = builder.Configuration.GetConnectionString("MyDbConnection") ?? "";
 builder.Services.AddTransient<OracleConnection>(_ => new OracleConnection(connectionString));
 
@@ -39,9 +39,10 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Habilitar carpetas estáticas (wwwroot, Modelos, Estilos, Recursos)
+// A) Habilitar carpeta wwwroot (por defecto)
 app.UseStaticFiles();
 
+// B) HABILITAR TUS CARPETAS PERSONALIZADAS (Arreglo del Error 404)
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(
@@ -56,6 +57,7 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = "/Estilos"
 });
 
+// Verificamos si existe Recursos para evitar errores si la carpeta no está
 string rutaRecursos = Path.Combine(builder.Environment.ContentRootPath, "Recursos");
 if (Directory.Exists(rutaRecursos))
 {
@@ -66,7 +68,9 @@ if (Directory.Exists(rutaRecursos))
     });
 }
 
+// C) Resto de la configuración
 app.UseRouting();
+
 app.UseSession();
 app.UseAuthorization();
 
@@ -74,6 +78,7 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+// Mapear el Socket
 app.MapHub<WhatsappHub>("/whatsappHub");
 
 app.Run();
