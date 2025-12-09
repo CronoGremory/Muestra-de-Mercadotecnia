@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asignar Evaluadores - Administración</title>
+    <link rel="stylesheet" href="/Estilos/styleflujos.css">
+</head>
+<body>
+    <div class="wrapper">
+        <div class="contenido">
+            <div class="admin-container">
+                <header class="dashboard-header">
+                    <h1>Panel de Administración</h1>
+                    <div class="user-info">
+                        <span id="admin-name-display">Admin: ...</span>
+                        <a href="/Modelos/login.html" class="menu-link">Cerrar Sesión</a>
+                    </div>
+                </header>
+                <div class="admin-main">
+                    <aside class="admin-nav">
+              <h3>Menú Principal</h3>
+              <ul>
+                <li>
+                  <a href="admin_overview.html" class="menu-link">
+                    <span class="hover-underline-animation">Resumen General</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_users.html" class="menu-link">
+                    <span class="hover-underline-animation">Gestionar Usuarios</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_projects.html" class="menu-link">
+                    <span class="hover-underline-animation">Gestionar Proyectos</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_assignments.html" class="menu-link">
+                    <span class="hover-underline-animation">Asignar Evaluadores</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_progress.html" class="menu-link">
+                    <span class="hover-underline-animation">Monitor de Progreso</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_results.html" class="menu-link">
+                    <span class="hover-underline-animation">Calcular/Ver Resultados</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_reports.html" class="menu-link">
+                    <span class="hover-underline-animation">Generar Reportes</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_certificates.html" class="menu-link">
+                    <span class="hover-underline-animation">Gestión Constancias</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_gallery.html" class="menu-link">
+                    <span class="hover-underline-animation">Gestionar Galería</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_settings.html" class="menu-link">
+                    <span class="hover-underline-animation">Configuración Evento</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_whatsapp.html" class="menu-link">
+                    <span class="hover-underline-animation" style="color: #25D366;">Bot WhatsApp</span>
+                  </a>
+                </li>
+              </ul>
+            </aside>
+                    <main class="admin-content">
+                        <section class="admin-section">
+                            <h3>Asignar Evaluadores a Proyectos</h3>
+                            
+                            <table id="assignmentsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Proyecto</th>
+                                        <th>Categoría</th>
+                                        <th>Evaluadores Asignados</th>
+                                        <th>Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="assignmentsBody">
+                                    <tr><td colspan="4">Cargando...</td></tr>
+                                </tbody>
+                            </table>
+                        </section>
+
+                        <dialog id="assignDialog" style="padding: 20px; border-radius: 8px; border: 1px solid #ccc; top: 20%; margin: auto;">
+                            <h3 id="dialogTitle">Asignar a Proyecto</h3>
+                            <form id="assignForm">
+                                <input type="hidden" id="hiddenProjectId" name="idProyecto">
+                                <div class="form-group">
+                                    <label>Seleccionar Evaluador:</label>
+                                    <div class="select-wrapper">
+                                        <select id="evaluatorSelect" name="idEvaluador" required style="width: 100%;">
+                                            <option value="">Cargando...</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div style="margin-top: 15px; text-align: right;">
+                                    <button type="button" onclick="document.getElementById('assignDialog').close()" class="btn-secondary">Cancelar</button>
+                                    <button type="submit" class="animated-button">Asignar</button>
+                                </div>
+                            </form>
+                        </dialog>
+
+                    </main>
+                </div>
+                 <footer
+  class="d-flex flex-wrap justify-content-center align-items-center py-3 mt-auto"
+  style="background-color: #f0f0f0; width: 100%; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;"
+>
+  <div class="d-flex align-items-center justify-content-center">
+    <img
+      src="/Recursos/UAA-LOGO.png"
+      alt="Logo UAA"
+      style="height: 80px; margin-right: 15px"
+      class="my-1"
+    />
+    <span class="mb-3 mb-md-0 text-dark">
+      &copy; 2025 Muestra Mercadológica UAA
+    </span>
+  </div>
+</footer>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const userName = sessionStorage.getItem('userName');
+            if(userName) document.getElementById('admin-name-display').textContent = `Admin: ${userName}`;
+
+            loadAssignments();
+            loadEvaluators(); // Cargar lista para el select
+        });
+
+        // 1. Cargar la tabla principal
+        function loadAssignments() {
+            fetch('/api/admin/assignments-full')
+            .then(r => r.json())
+            .then(data => {
+                const tbody = document.getElementById('assignmentsBody');
+                tbody.innerHTML = '';
+                
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No hay proyectos registrados aún.</td></tr>';
+                    return;
+                }
+
+                data.forEach(p => {
+                    let evaluadoresHtml = '';
+                    if (p.evaluadores.length === 0) {
+                        evaluadoresHtml = '<span style="color: #999;">Sin asignar</span>';
+                    } else {
+                        p.evaluadores.forEach(ev => {
+                            evaluadoresHtml += `
+                                <div style="margin-bottom: 4px; display: inline-block; background: #f0f0f0; padding: 2px 8px; border-radius: 12px; margin-right: 5px;">
+                                    ${ev.evaluador} 
+                                    <a href="#" onclick="removeAssignment(${ev.idAsignacion})" style="color: red; font-weight: bold; text-decoration: none; margin-left: 5px;">&times;</a>
+                                </div>`;
+                        });
+                    }
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${p.nombreProyecto}</td>
+                        <td>${p.categoria}</td>
+                        <td>${evaluadoresHtml}</td>
+                        <td>
+                            <button class="btn" onclick="openAssignModal(${p.idProyecto}, '${p.nombreProyecto}')">
+                                + Asignar
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            });
+        }
+
+        // 2. Cargar lista de evaluadores para el dropdown
+        function loadEvaluators() {
+            fetch('/api/admin/evaluators-list')
+            .then(r => r.json())
+            .then(users => {
+                const sel = document.getElementById('evaluatorSelect');
+                sel.innerHTML = '<option value="">-- Selecciona --</option>';
+                users.forEach(u => {
+                    const opt = document.createElement('option');
+                    opt.value = u.idUsuario;
+                    opt.textContent = `${u.nombre} (${u.rol})`;
+                    sel.appendChild(opt);
+                });
+            });
+        }
+
+        // 3. Abrir el modal
+        window.openAssignModal = (idProyecto, nombreProyecto) => {
+            document.getElementById('hiddenProjectId').value = idProyecto;
+            document.getElementById('dialogTitle').textContent = `Asignar a: ${nombreProyecto}`;
+            document.getElementById('assignDialog').showModal();
+        };
+
+        // 4. Guardar asignación
+        document.getElementById('assignForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            
+            try {
+                const res = await fetch('/api/admin/assign', { method: 'POST', body: formData });
+                const data = await res.json();
+                
+                if(res.ok) {
+                    alert(data.message);
+                    document.getElementById('assignDialog').close();
+                    loadAssignments();
+                } else {
+                    alert("Error: " + data.message);
+                }
+            } catch(err) {
+                alert("Error de conexión.");
+            }
+        });
+
+        // 5. Eliminar asignación
+        window.removeAssignment = async (idAsignacion) => {
+            if(!confirm("¿Quitar a este evaluador del proyecto?")) return;
+            await fetch(`/api/admin/unassign/${idAsignacion}`, { method: 'DELETE' });
+            loadAssignments();
+        };
+    </script>
+</body>
+</html>

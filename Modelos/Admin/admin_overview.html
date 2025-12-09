@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Resumen General - Administración Muestra Mercadológica</title>
+    <link rel="stylesheet" href="/Estilos/styleflujos.css" />
+  </head>
+  <body>
+    <div class="wrapper">
+      <div class="contenido">
+        <div class="admin-container">
+          <header class="dashboard-header">
+            <h1>Panel de Administración</h1>
+            <div class="user-info">
+              <span id="admin-name-display">Admin: ...</span>
+              <a href="/Modelos/login.html" class="menu-link">
+                <span class="hover-underline-animation">Cerrar Sesión</span>
+              </a>
+            </div>
+          </header>
+          <div class="admin-main">
+            <aside class="admin-nav">
+              <h3>Menú Principal</h3>
+              <ul>
+                <li>
+                  <a href="admin_overview.html" class="menu-link">
+                    <span class="hover-underline-animation">Resumen General</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_users.html" class="menu-link">
+                    <span class="hover-underline-animation">Gestionar Usuarios</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_projects.html" class="menu-link">
+                    <span class="hover-underline-animation">Gestionar Proyectos</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_assignments.html" class="menu-link">
+                    <span class="hover-underline-animation">Asignar Evaluadores</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_progress.html" class="menu-link">
+                    <span class="hover-underline-animation">Monitor de Progreso</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_results.html" class="menu-link">
+                    <span class="hover-underline-animation">Calcular/Ver Resultados</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_reports.html" class="menu-link">
+                    <span class="hover-underline-animation">Generar Reportes</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_certificates.html" class="menu-link">
+                    <span class="hover-underline-animation">Gestión Constancias</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_gallery.html" class="menu-link">
+                    <span class="hover-underline-animation">Gestionar Galería</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_settings.html" class="menu-link">
+                    <span class="hover-underline-animation">Configuración Evento</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_whatsapp.html" class="menu-link">
+                    <span class="hover-underline-animation" style="color: #25D366;">Bot WhatsApp</span>
+                  </a>
+                </li>
+              </ul>
+            </aside>
+            <main class="admin-content">
+              <section id="overview" class="admin-section">
+                <h3>Resumen General</h3>
+                <div class="stats-grid">
+                  <div class="stat-item">
+                    <h4>Equipos Registrados</h4>
+                    <p id="stat-equipos">...</p>
+                  </div>
+                  <div class="stat-item">
+                    <h4>Proyectos Subidos</h4>
+                    <p id="stat-proyectos">...</p>
+                  </div>
+                  <div class="stat-item">
+                    <h4>Evaluadores Activos</h4>
+                    <p id="stat-evaluadores">...</p>
+                  </div>
+                  <div class="stat-item">
+                    <h4>Evaluaciones Pendientes</h4>
+                    <p id="stat-pendientes">...</p>
+                  </div>
+                </div>
+                
+                <h4 style="margin-top: 30px;">Accesos Rápidos</h4>
+                <div style="display: flex; gap: 15px;">
+                  <a href="admin_users.html"><button class="btn">Crear Usuario</button></a>
+                  <a href="admin_assignments.html"><button class="btn">Asignar Juez</button></a>
+                  <a href="admin_results.html"><button class="btn">Ver Ganadores</button></a>
+                </div>
+              </section>
+            </main>
+          </div>
+        </div>
+          <footer
+  class="d-flex flex-wrap justify-content-center align-items-center py-3 mt-auto"
+  style="background-color: #f0f0f0; width: 100%; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;"
+>
+  <div class="d-flex align-items-center justify-content-center">
+    <img
+      src="/Recursos/UAA-LOGO.png"
+      alt="Logo UAA"
+      style="height: 80px; margin-right: 15px"
+      class="my-1"
+    />
+    <span class="mb-3 mb-md-0 text-dark">
+      &copy; 2025 Muestra Mercadológica UAA
+    </span>
+  </div>
+</footer>
+      </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const userName = sessionStorage.getItem('userName');
+            if(userName) document.getElementById('admin-name-display').textContent = `Admin: ${userName}`;
+
+            // Cargar estadísticas
+            fetch('/api/admin/overview')
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('stat-equipos').textContent = data.equipos;
+                document.getElementById('stat-proyectos').textContent = data.proyectos;
+                document.getElementById('stat-evaluadores').textContent = data.evaluadores;
+                document.getElementById('stat-pendientes').textContent = data.evaluacionesPendientes;
+            })
+            .catch(err => console.error("Error cargando overview:", err));
+        });
+    </script>
+  </body>
+</html>

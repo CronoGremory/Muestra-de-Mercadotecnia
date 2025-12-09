@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Configuración Evento - Administración</title>
+    <link rel="stylesheet" href="/Estilos/styleflujos.css" />
+  </head>
+
+  <body>
+    <div class="wrapper">
+      <div class="contenido">
+        <div class="container admin-container">
+          <header class="dashboard-header">
+            <h1>Panel de Administración</h1>
+            <div class="user-info">
+              <span id="admin-name-display">Admin: ...</span>
+              <a href="/Modelos/login.html" class="menu-link">Cerrar Sesión</a>
+            </div>
+          </header>
+          <div class="admin-main">
+            <aside class="admin-nav">
+              <h3>Menú Principal</h3>
+              <ul>
+                <li>
+                  <a href="admin_overview.html" class="menu-link">
+                    <span class="hover-underline-animation">Resumen General</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_users.html" class="menu-link">
+                    <span class="hover-underline-animation">Gestionar Usuarios</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_projects.html" class="menu-link">
+                    <span class="hover-underline-animation">Gestionar Proyectos</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_assignments.html" class="menu-link">
+                    <span class="hover-underline-animation">Asignar Evaluadores</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_progress.html" class="menu-link">
+                    <span class="hover-underline-animation">Monitor de Progreso</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_results.html" class="menu-link">
+                    <span class="hover-underline-animation">Calcular/Ver Resultados</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_reports.html" class="menu-link">
+                    <span class="hover-underline-animation">Generar Reportes</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_certificates.html" class="menu-link">
+                    <span class="hover-underline-animation">Gestión Constancias</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_gallery.html" class="menu-link">
+                    <span class="hover-underline-animation">Gestionar Galería</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_settings.html" class="menu-link">
+                    <span class="hover-underline-animation">Configuración Evento</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_whatsapp.html" class="menu-link">
+                    <span class="hover-underline-animation" style="color: #25D366;">Bot WhatsApp</span>
+                  </a>
+                </li>
+              </ul>
+            </aside>
+            <main class="admin-content">
+              <h2>Configuración del Evento</h2>
+
+              <section class="form-section">
+                <form id="settingsForm">
+                  <fieldset class="criteria-fieldset">
+                    <legend>Información General</legend>
+                    <div class="form-group">
+                      <label>Nombre del Evento:</label>
+                      <input type="text" id="event-name" name="NombreEvento" required />
+                    </div>
+                    <div class="form-group">
+                      <label>Edición / Año:</label>
+                      <input type="number" id="event-edition" name="Edicion" required />
+                    </div>
+                    <div class="form-group">
+                      <label>Descripción Breve:</label>
+                      <textarea id="event-description" name="Descripcion" rows="3"></textarea>
+                    </div>
+                  </fieldset>
+
+                  <fieldset class="criteria-fieldset">
+                    <legend>Fechas Clave</legend>
+                    <div class="form-group azul">
+                        <label>Inicio de Registro:</label>
+                        <input type="date" id="reg-start" name="FechaInicioRegistro" class="text-input"/>
+                    </div>
+                    <div class="form-group azul">
+                        <label>Cierre de Registro:</label>
+                        <input type="date" id="reg-end" name="FechaFinRegistro" class="text-input"/>
+                    </div>
+                    <div class="form-group azul">
+                        <label>Límite Subida de Archivos:</label>
+                        <input type="date" id="sub-deadline" name="FechaLimiteArchivos" class="text-input"/>
+                    </div>
+                    <div class="form-group azul">
+                        <label>Límite de Evaluación:</label>
+                        <input type="date" id="eval-deadline" name="FechaLimiteEvaluacion" class="text-input"/>
+                    </div>
+                  </fieldset>
+
+                  <fieldset class="criteria-fieldset">
+                    <legend>Notas sobre Categorías</legend>
+                    <div class="form-group">
+                      <label>Texto Informativo (No modifica la BD de categorías):</label>
+                      <textarea id="cat-text" name="CategoriasTexto" rows="4"></textarea>
+                    </div>
+                  </fieldset>
+
+                  <fieldset class="criteria-fieldset">
+                    <legend>Control de Accesos</legend>
+                    <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
+                      <input type="checkbox" id="check-results" name="VerResultados" style="width: auto; margin:0;" />
+                      <label for="check-results" style="margin:0;">Habilitar vista de resultados para equipos</label>
+                    </div>
+                    <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
+                      <input type="checkbox" id="check-certs" name="DescargarConstancias" style="width: auto; margin:0;" />
+                      <label for="check-certs" style="margin:0;">Habilitar descarga de constancias</label>
+                    </div>
+                  </fieldset>
+
+                  <button type="submit" class="animated-button">Guardar Configuración</button>
+                </form>
+              </section>
+            </main>
+          </div>
+           <footer
+  class="d-flex flex-wrap justify-content-center align-items-center py-3 mt-auto"
+  style="background-color: #f0f0f0; width: 100%; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;"
+>
+  <div class="d-flex align-items-center justify-content-center">
+    <img
+      src="/Recursos/UAA-LOGO.png"
+      alt="Logo UAA"
+      style="height: 80px; margin-right: 15px"
+      class="my-1"
+    />
+    <span class="mb-3 mb-md-0 text-dark">
+      &copy; 2025 Muestra Mercadológica UAA
+    </span>
+  </div>
+</footer>
+        </div>
+      </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const userName = sessionStorage.getItem('userName');
+            if(userName) document.getElementById('admin-name-display').textContent = `Admin: ${userName}`;
+
+            // 1. Cargar Configuración
+            fetch('/api/admin/settings')
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('event-name').value = data.nombreEvento;
+                document.getElementById('event-edition').value = data.edicion;
+                document.getElementById('event-description').value = data.descripcion;
+                document.getElementById('cat-text').value = data.categoriasTexto;
+                
+                // Fechas (solo la parte YYYY-MM-DD)
+                if(data.fechaInicioRegistro) document.getElementById('reg-start').value = data.fechaInicioRegistro.split('T')[0];
+                if(data.fechaFinRegistro) document.getElementById('reg-end').value = data.fechaFinRegistro.split('T')[0];
+                if(data.fechaLimiteArchivos) document.getElementById('sub-deadline').value = data.fechaLimiteArchivos.split('T')[0];
+                if(data.fechaLimiteEvaluacion) document.getElementById('eval-deadline').value = data.fechaLimiteEvaluacion.split('T')[0];
+
+                // Checkboxes
+                document.getElementById('check-results').checked = data.verResultados;
+                document.getElementById('check-certs').checked = data.descargarConstancias;
+            })
+            .catch(err => console.error(err));
+
+            // 2. Guardar Configuración
+            document.getElementById('settingsForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const formData = {
+                    NombreEvento: document.getElementById('event-name').value,
+                    Edicion: parseInt(document.getElementById('event-edition').value),
+                    Descripcion: document.getElementById('event-description').value,
+                    CategoriasTexto: document.getElementById('cat-text').value,
+                    FechaInicioRegistro: document.getElementById('reg-start').value || null,
+                    FechaFinRegistro: document.getElementById('reg-end').value || null,
+                    FechaLimiteArchivos: document.getElementById('sub-deadline').value || null,
+                    FechaLimiteEvaluacion: document.getElementById('eval-deadline').value || null,
+                    VerResultados: document.getElementById('check-results').checked,
+                    DescargarConstancias: document.getElementById('check-certs').checked
+                };
+
+                try {
+                    const res = await fetch('/api/admin/settings', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formData)
+                    });
+                    const data = await res.json();
+                    if(res.ok) alert(data.message);
+                    else alert("Error: " + data.message);
+                } catch(err) { alert("Error de conexión"); }
+            });
+        });
+    </script>
+  </body>
+</html>

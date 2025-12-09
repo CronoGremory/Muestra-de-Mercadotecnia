@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Panel de Evaluador - Muestra Mercadológica</title>
+    <link rel="stylesheet" href="/Estilos/styleflujos.css" />
+  </head>
+
+  <body>
+    <div class="wrapper">
+      <div class="contenido">
+        <div class="admin-container">
+          <header class="dashboard-header">
+            <h1>Muestra Mercadológica</h1>
+            <div class="user-info">
+              <span id="user-name-display">Evaluador: [Cargando...]</span>
+              <a href="/Modelos/login.html" class="menu-link">
+                <span class="hover-underline-animation">Cerrar Sesión</span>
+              </a>
+            </div>
+          </header>
+
+          <main class="admin-content" style="flex-grow: 1">
+            <h2>Proyectos Asignados para Evaluación</h2>
+
+            <p class="deadline-info">
+              <strong>Fecha Límite para Evaluar:</strong> [Fecha y Hora Límite]
+            </p>
+            <p class="notice">
+              [Nota: Después de esta fecha, ya no podrás acceder a los proyectos
+              ni enviar evaluaciones.]
+            </p>
+
+            <section class="project-list" style="margin-top: 25px">
+              <h3>Mis Proyectos</h3>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Nombre del Proyecto</th>
+                    <th>Categoría</th>
+                    <th>Equipo</th>
+                    <th>Estado</th>
+                    <th>Acción</th>
+                  </tr>
+                </thead>
+                <tbody id="project-table-body">
+                  <tr>
+                    <td colspan="5" style="text-align: center;">Cargando proyectos asignados...</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <p class="info-note">
+                Solo ves los proyectos que te han sido específicamente
+                asignados.
+              </p>
+            </section>
+
+            <div>
+              <button
+                type="button"
+                class="animated-button"
+                style="width: 250px"
+                onclick="location.href='usuario_cambiar_password.html'"
+              >
+                <span></span><span></span><span></span><span></span>
+                Cambiar Contraseña
+              </button>
+            </div>
+          </main>
+
+        <footer
+  class="d-flex flex-wrap justify-content-center align-items-center py-3 mt-auto"
+  style="background-color: #f0f0f0; width: 100%; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;"
+>
+  <div class="d-flex align-items-center justify-content-center">
+    <img
+      src="/Recursos/UAA-LOGO.png"
+      alt="Logo UAA"
+      style="height: 80px; margin-right: 15px"
+      class="my-1"
+    />
+    <span class="mb-3 mb-md-0 text-dark">
+      &copy; 2025 Muestra Mercadológica UAA
+    </span>
+  </div>
+</footer>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        // 1. Obtener datos de la sesión
+        const userId = sessionStorage.getItem('userId');
+        const userName = sessionStorage.getItem('userName');
+        
+        const userNameDisplay = document.getElementById("user-name-display");
+        const tableBody = document.getElementById("project-table-body");
+
+        if (userName) {
+          userNameDisplay.textContent = `Evaluador: ${userName}`;
+        }
+
+        if (!userId) {
+          userNameDisplay.textContent = "Error: Inicia sesión de nuevo.";
+          tableBody.innerHTML = '<tr><td colspan="5" style="color: red;">Error: No se pudo encontrar tu ID de usuario.</td></tr>';
+          return;
+        }
+
+        // 2. Llamar al API para obtener los proyectos asignados
+        fetch(`/api/dashboard/evaluador?evaluadorId=${userId}`)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error("No se pudieron cargar los proyectos asignados.");
+            }
+            return response.json();
+          })
+          .then(asignaciones => {
+            // Limpiamos la tabla
+            tableBody.innerHTML = ""; 
+
+            if (asignaciones.length === 0) {
+              tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No tienes proyectos asignados actualmente.</td></tr>';
+              return;
+            }
+
+            // 3. Construir la tabla dinámicamente
+            asignaciones.forEach(item => {
+              const row = document.createElement("tr");
+              
+              const estadoColor = item.estado === 'Pendiente' ? '#d97604' : 'green';
+              const accionTexto = item.estado === 'Pendiente' ? 'Evaluar' : 'Ver Evaluación';
+              // Esta es la corrección de ruta:
+              const accionUrl = `/Modelos/Evaluador/evaluar_proyecto.html?idAsignacion=${item.idAsignacion}`;
+
+              row.innerHTML = `
+                <td data-label="Proyecto:">${item.nombreProyecto}</td>
+                <td data-label="Categoría:">${item.nombreCategoria}</td>
+                <td data-label="Equipo:">${item.nombreEquipo}</td>
+                <td data-label="Estado:">
+                  <span style="color: ${estadoColor}; font-weight: bold">${item.estado}</span>
+                </td>
+                <td data-label="Acción:">
+                  <a href="${accionUrl}" class="menu-link">
+                    <span class="hover-underline-animation"> ${accionTexto} </span>
+                  </a>
+                </td>
+              `;
+              tableBody.appendChild(row);
+            });
+          })
+          .catch(error => {
+            console.error("Error al cargar dashboard:", error);
+            tableBody.innerHTML = `<tr><td colspan="5" style="color: red;">${error.message}</td></tr>`;
+          });
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Panel de Docente - Muestra Mercadológica</title>
+    <link rel="stylesheet" href="/Estilos/styleflujos.css" />
+  </head>
+
+  <body>
+    <div class="wrapper">
+      <div class="contenido">
+        <div class="admin-container">
+          <header class="dashboard-header">
+            <h1>Muestra Mercadológica</h1>
+            <div class="user-info">
+              <span id="user-name-display">Docente: [Cargando...]</span>
+              <a href="/Modelos/login.html" class="menu-link">
+                <span class="hover-underline-animation">Cerrar Sesión</span>
+              </a>
+            </div>
+          </header>
+
+          <main class="admin-content" style="flex-grow: 1">
+            <h2>Panel de Evaluación Docente</h2>
+
+            <p class="deadline-info">
+              <strong>Fecha Límite para completar evaluaciones:</strong> [Fecha y Hora Límite]
+            </p>
+            <p class="notice">
+              Recuerda aplicar los criterios de evaluación específicos para
+              docentes. Tu perspectiva académica es fundamental.
+            </p>
+
+            <section class="project-list" style="margin-top: 25px">
+              <h3>Proyectos Asignados para tu Evaluación</h3>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Proyecto Asignado</th>
+                    <th>Categoría</th>
+                    <th>Equipo</th>
+                    <th>Estado Evaluación</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="project-table-body">
+                  <tr><td colspan="5" style="text-align: center;">Cargando proyectos asignados...</td></tr>
+                </tbody>
+              </table>
+
+              <p class="info-note">
+                Solo se listan los proyectos que te han sido asignados bajo el
+                rol de docente evaluador.
+              </p>
+            </section>
+
+            <div>
+              <button
+                type="button"
+                class="animated-button"
+                style="width: 250px"
+                onclick="location.href='usuario_cambiar_password.html'"
+              >
+                <span></span><span></span><span></span><span></span>
+                Cambiar Contraseña
+              </button>
+            </div>
+          </main>
+
+<footer
+  class="d-flex flex-wrap justify-content-center align-items-center py-3 mt-auto"
+  style="background-color: #f0f0f0; width: 100%; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;"
+>
+  <div class="d-flex align-items-center justify-content-center">
+    <img
+      src="/Recursos/UAA-LOGO.png"
+      alt="Logo UAA"
+      style="height: 80px; margin-right: 15px"
+      class="my-1"
+    />
+    <span class="mb-3 mb-md-0 text-dark">
+      &copy; 2025 Muestra Mercadológica UAA
+    </span>
+  </div>
+</footer>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const userId = sessionStorage.getItem('userId');
+        const userName = sessionStorage.getItem('userName');
+        const userNameDisplay = document.getElementById("user-name-display");
+        const tableBody = document.getElementById("project-table-body");
+
+        if (userName) userNameDisplay.textContent = `Docente: ${userName}`;
+        if (!userId) {
+          window.location.href = '/Modelos/login.html';
+          return;
+        }
+
+        // Reutilizamos el endpoint del evaluador (la lógica es la misma: "traer mis asignaciones")
+        fetch(`/api/dashboard/evaluador?evaluadorId=${userId}`)
+          .then(response => {
+            if (!response.ok) throw new Error("Error al cargar proyectos.");
+            return response.json();
+          })
+          .then(asignaciones => {
+            tableBody.innerHTML = ""; 
+            if (asignaciones.length === 0) {
+              tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No tienes proyectos asignados.</td></tr>';
+              return;
+            }
+
+            asignaciones.forEach(item => {
+              const row = document.createElement("tr");
+              const estadoColor = item.estado === 'Pendiente' ? '#d96404d5' : 'green'; // Color diferente para docente
+              const accionTexto = item.estado === 'Pendiente' ? 'Evaluar' : 'Ver Evaluación';
+              // URL específica para la vista de evaluación del DOCENTE
+              const accionUrl = `/Modelos/Docente/evaluar_proyecto_docente.html?idAsignacion=${item.idAsignacion}`;
+
+              row.innerHTML = `
+                <td data-label="Proyecto:">${item.nombreProyecto}</td>
+                <td data-label="Categoría:">${item.nombreCategoria}</td>
+                <td data-label="Equipo:">${item.nombreEquipo}</td>
+                <td data-label="Estado:">
+                  <span style="color: ${estadoColor}; font-weight: bold">${item.estado}</span>
+                </td>
+                <td data-label="Acciones:">
+                  <a href="${accionUrl}" class="menu-link">
+                    <span class="hover-underline-animation">${accionTexto}</span>
+                  </a>
+                </td>
+              `;
+              tableBody.appendChild(row);
+            });
+          })
+          .catch(error => {
+            console.error(error);
+            tableBody.innerHTML = `<tr><td colspan="5" style="color: red;">Error de conexión.</td></tr>`;
+          });
+      });
+    </script>
+  </body>
+</html>

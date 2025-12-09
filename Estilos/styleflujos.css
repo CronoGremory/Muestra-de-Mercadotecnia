@@ -1,0 +1,1239 @@
+/* ================================================================== */
+/* 1. RESET Y BASE */
+/* ================================================================== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  /* consistencia en sizing */
+}
+
+html,
+body {
+  min-height: 100%;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  background-color: #ffffff;
+  font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+
+/* ================================================================== */
+/* 2. LAYOUT PRINCIPAL (WRAPPER / CONTENEDORES) */
+/* ================================================================== */
+.wrapper {
+  /* Asegura que ocupe TODA la pantalla visible */
+  height: 100vh;
+  min-height: 100vh;
+  width: 100%;
+
+  /* CLAVE: Define el borde visible uniforme (20px) en todos los lados */
+  padding: 50px;
+
+  /* COLORES DEL FONDO ANIMADO */
+  /* *** AQUI SE APLICAN LOS CUATRO COLORES DE LA PALETA RETRO *** */
+  background: linear-gradient(45deg, #3C847E, #003153, #D98841, #F2DA5E);
+  background-size: 300% 300%;
+  animation: color 12s ease-in-out infinite;
+
+  /* Centra el contenido blanco en el medio de la pantalla */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+@keyframes color {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* ------------------------
+   Contenido principal - DEBE LLENAR EL ESPACIO INTERNO DEL WRAPPER
+   ------------------------ */
+.contenido {
+  background-color: #ffffff;
+  /* Fondo blanco para cubrir el centro */
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+
+  /* CLAVE: Ocupa el 100% del espacio DENTRO del padding de 20px */
+  width: 100%;
+  height: 100%;
+
+  /* CLAVE: Convertir en Flexbox para organizar el Header, Main y Footer */
+  display: flex;
+  flex-direction: column;
+  /* Apilar elementos verticalmente */
+
+  /* Permitir scroll si el contenido excede el 100% de la altura */
+  overflow-y: auto;
+  position: relative;
+  z-index: 10;
+  padding: 0;
+  margin: auto;
+}
+
+/* Contenedor interior para padding */
+.container {
+  width: 100%;
+  padding: 25px 40px;
+  /* Espacio de contenido */
+  min-height: 100%;
+
+  /* ADICIONAL: Si el contenido interno es Header, Main, Footer */
+  display: flex;
+  flex-direction: column;
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.admin-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  flex-grow: 1;
+}
+
+.admin-main {
+  display: flex;
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+/* ------------------------
+   Estilo para el selector de archivo (Label que actúa como botón)
+   ------------------------ */
+.btn-file-select a {
+  color: #ffffff !important;
+  /* Forzar el blanco en el link */
+}
+
+.btn-file-select,
+.file-input-button {
+  /* ... propiedades existentes ... */
+
+  /* SOLUCIÓN: Forzar el color blanco para anular cualquier otra regla */
+  color: #ffffff !important;
+  /* Incluimos ambas clases por si usas la anterior */
+  display: inline-block;
+  padding: 10px 20px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  border: none;
+  border-radius: 6px;
+  box-sizing: border-box;
+  font-size: 0.95em;
+  font-weight: bold;
+  color: #ffffff;
+  /* Color de texto blanco, como los botones principales */
+  background-color: #2405F2;
+  /* Color de fondo principal, como el animated-button por defecto */
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+
+  /* Evitar que el texto se marque */
+  user-select: none;
+}
+
+.btn-file-select:hover,
+.file-input-button:hover {
+  background-color: #4804D9;
+  /* Un tono un poco más oscuro o morado al pasar el ratón */
+  box-shadow: 0 4px 10px rgba(36, 5, 242, 0.3);
+}
+
+/* Si quieres que se vea MÁS como el animated-button, tendrías que copiar su estructura.
+   Si este estilo simple no es suficiente, avísame y copiamos la estructura completa del animated-button. */
+
+/* ================================================================== */
+/* 3. HEADER Y NAVEGACIÓN (DASHBOARD) */
+/* ================================================================== */
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 25px;
+  background-color: #f8f8f8;
+  border-bottom: 2px solid #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.dashboard-header h1 {
+  font-size: 1.5em;
+  color: #003153;
+  margin: 0;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.user-info span {
+  font-weight: bold;
+  color: #1A237E;
+  /* COLOR: Azul Marino */
+}
+
+/* Navegación Lateral (Fondo Blanco Solicitado) */
+.admin-nav {
+  width: 250px;
+  background-color: #FFFFFF;
+  /* FONDO BLANCO */
+  color: #003153;
+  padding: 20px 0;
+  flex-shrink: 0;
+  overflow-y: auto;
+  border-right: 1px solid #e0e0e0;
+  /* Borde de separación */
+}
+
+.admin-nav h3 {
+  text-align: center;
+  color: #1A237E;
+  /* COLOR: Título del menú */
+  margin-top: 0;
+  margin-bottom: 20px;
+  padding: 0 20px;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 10px;
+}
+
+.admin-nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.admin-nav li {
+  margin: 5px 0;
+}
+
+.admin-nav a {
+  display: block;
+  padding: 10px 20px;
+  color: #003153;
+  /* COLOR: Texto del menú */
+  text-decoration: none;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.admin-nav a:hover,
+.admin-nav .active {
+  background-color: #f0f0f0;
+  /* Color de fondo al pasar el ratón o activo */
+  color: #2405F2;
+  /* COLOR: Texto activo */
+}
+
+/* Efecto de Subrayado */
+.menu-link {
+  position: relative;
+  color: inherit;
+  text-decoration: none;
+  margin: 10px 10px;
+  display: inline-block;
+  margin-right: 15px;
+}
+
+.hover-underline-animation {
+  display: inline-block;
+  position: relative;
+  color: inherit;
+}
+
+.hover-underline-animation:after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  transform: scaleX(0);
+  height: 2px;
+  bottom: 0;
+  left: 0;
+  /* COLOR del subrayado */
+  background-color: #1A237E;
+  transform-origin: bottom right;
+  transition: transform 0.25s ease-out;
+}
+
+.menu-link:hover .hover-underline-animation:after {
+  transform: scaleX(1);
+  transform-origin: bottom left;
+}
+
+/* Contenido Principal */
+.admin-content {
+  padding: 25px;
+  /* PADDING SOLICITADO */
+  flex-grow: 1;
+  overflow-y: auto;
+  /* Scroll del contenido */
+}
+
+.admin-content h2 {
+  color: #003153;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 10px;
+  margin-top: 0;
+}
+
+/* ================================================================== */
+/* 4. BOTONES Y CALL-TO-ACTION (CTAs) */
+/* ================================================================== */
+
+/* Botón CTA del Header (Cerrar Sesión) - Usa el estilo .btn-secondary */
+.cta {
+  border: none;
+  padding: 0;
+  background: none;
+}
+
+.cta a {
+  padding: 0;
+  font-weight: normal;
+  text-decoration: none;
+  display: inline-block;
+}
+
+
+/* Botón Animado (General) - Para botones primarios con animación */
+.animated-button {
+  position: relative;
+  display: inline-block;
+  padding: 12px 25px;
+  /* COLORES AQUÍ (BOTÓN PRIMARIO) */
+  background: linear-gradient(to right, #2405F2, #4804D9);
+  border: none;
+  border-radius: 5px;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  text-align: center;
+  text-decoration: none;
+  font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+  margin: 5px 10px;
+  margin-right: 15px;
+}
+
+.animated-button:hover {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.animated-button span {
+  position: absolute;
+  display: block;
+}
+
+.animated-button span:nth-child(1) {
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #fff);
+  animation: btn-anim1 1s linear infinite;
+}
+
+.animated-button span:nth-child(2) {
+  top: -100%;
+  right: 0;
+  width: 2px;
+  height: 100%;
+  background: linear-gradient(180deg, transparent, #fff);
+  animation: btn-anim2 1s linear infinite;
+  animation-delay: .25s;
+}
+
+.animated-button span:nth-child(3) {
+  bottom: 0;
+  right: -100%;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(270deg, transparent, #fff);
+  animation: btn-anim3 1s linear infinite;
+  animation-delay: .5s;
+}
+
+.animated-button span:nth-child(4) {
+  bottom: -100%;
+  left: 0;
+  width: 2px;
+  height: 100%;
+  background: linear-gradient(360deg, transparent, #fff);
+  animation: btn-anim4 1s linear infinite;
+  animation-delay: .75s;
+}
+
+@keyframes btn-anim1 {
+  0% {
+    left: -100%;
+  }
+
+  50%,
+  100% {
+    left: 100%;
+  }
+}
+
+@keyframes btn-anim2 {
+  0% {
+    top: -100%;
+  }
+
+  50%,
+  100% {
+    top: 100%;
+  }
+}
+
+@keyframes btn-anim3 {
+  0% {
+    right: -100%;
+  }
+
+  50%,
+  100% {
+    right: 100%;
+  }
+}
+
+@keyframes btn-anim4 {
+  0% {
+    bottom: -100%;
+  }
+
+  50%,
+  100% {
+    bottom: 100%;
+  }
+}
+
+/* Botón Genérico Pequeño/Secundario (para tablas, Cerrar Sesión, etc.) */
+.btn {
+  padding: 8px 12px;
+  border-radius: 5px;
+  background-color: #003153;
+  /* COLOR: Botón primario de tablas */
+  color: white;
+  text-decoration: none;
+  font-size: 14px;
+  /* TIPOGRAFÍA BASE (Heredada de body) */
+  font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+  font-weight: bold;
+  /* Los botones primarios suelen ser negrita */
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn:hover {
+  background-color: #1A237E;
+}
+
+.btn-secondary {
+  /* COLOR: Botón secundario (usado para Cerrar Sesión) */
+  background-color: #f0f0f0;
+  color: #1A237E;
+  border: 1px solid #ccc;
+  font-weight: normal;
+  /* AJUSTE FINAL: Tipografía normal, como el estilo anterior */
+  font-size: 14px;
+}
+
+.btn-secondary:hover {
+  background-color: #e0e0e0;
+}
+
+/* ================================================================== */
+/* 5. ELEMENTOS DE CONTENIDO (INFO, NOTAS, ESTADÍSTICAS) */
+/* ================================================================== */
+
+/* Notas de información */
+.info-note,
+.notice {
+  padding: 10px 15px;
+  margin-bottom: 20px;
+  /* COLOR: Barra lateral AMARILLA/ORO de la paleta */
+  border-left: 5px solid #F2DA5E;
+  background-color: rgba(242, 218, 94, 0.1);
+  border-radius: 4px;
+}
+
+.info-note strong,
+.notice strong {
+  font-weight: bold;
+  color: #003153;
+}
+
+/* Tarjetas de estadísticas rápidas */
+.quick-stat-staff {
+  padding: 15px;
+  background-color: #f8faff;
+  border-radius: 8px;
+  /* COLOR: Barra lateral de la tarjeta de estadística (VERDE AZULADO principal) */
+  border-left: 5px solid #3C847E;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.quick-stat-staff h4 {
+  margin-top: 0;
+  color: #003153;
+}
+
+.report-item {
+  margin-bottom: 15px;
+  padding: 15px;
+  border: 1px solid #eee;
+  background-color: #fefefe;
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ================================================================== */
+/* 6. ESTILOS DE TABLAS */
+/* ================================================================== */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+  background-color: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+table th,
+table td {
+  padding: 12px 15px;
+  text-align: left;
+}
+
+table thead {
+  background-color: #003153;
+  /* COLOR: Fondo de encabezado de tabla */
+  color: white;
+}
+
+table thead th {
+  font-weight: bold;
+}
+
+table tbody tr {
+  border-bottom: 1px solid #eeeeee;
+  transition: background-color 0.3s;
+}
+
+table tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+table tbody tr:hover {
+  background-color: #f0f0f0;
+}
+
+
+/* ================================================================== */
+/* 7. ESTILOS DE FORMULARIOS Y CRITERIOS DE EVALUACIÓN */
+/* ================================================================== */
+
+/* Estilo para los bloques de criterios de evaluación (tarjetas) */
+.criteria-fieldset {
+  border: 1px solid #e0e0e0;
+  padding: 25px;
+  border-radius: 12px;
+  margin-bottom: 35px;
+  /* COLOR: Fondo de la tarjeta de criterios */
+  background-color: #f7f7f7;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.criteria-fieldset legend {
+  font-weight: bold;
+  padding: 0 15px;
+  color: #1A237E;
+  /* COLOR: Título de la sección de criterios */
+  font-size: 1.2em;
+  border-bottom: none;
+}
+
+/* Estilo para cada grupo de criterio individual */
+.criteria-group {
+  /* COLOR: Barra lateral de cada criterio (NARANJA QUEMADO de la paleta) */
+  border-left: 4px solid #D98841;
+  padding-left: 15px;
+  margin-bottom: 25px;
+  background-color: #ffffff;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+}
+
+.criteria-group label {
+  font-weight: 600;
+  color: #001F3F;
+  /* Azul oscuro */
+  display: block;
+  margin-bottom: 5px;
+}
+
+.criteria-group select,
+.criteria-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  margin-top: 5px;
+  margin-bottom: 10px;
+}
+
+.criteria-group textarea {
+  min-height: 80px;
+}
+
+/* Estilo para resaltar la sección de comentarios generales */
+.general-comments-section {
+  /* COLOR: Borde de comentarios generales (Morado) */
+  border: 2px dashed #4804D9;
+  padding: 20px;
+  border-radius: 12px;
+  background-color: #f9f9ff;
+}
+
+/* ------------------------------------------------------------------ */
+/* 7.1. DISEÑO DE BÚSQUEDA (SEARCH BAR) */
+/* ------------------------------------------------------------------ */
+
+.search-container {
+  display: flex;
+  justify-content: flex-start;
+  /* Alinea a la izquierda */
+  align-items: center;
+  gap: 10px;
+  padding: 15px;
+  margin-bottom: 20px;
+  background-color: #f0f4ff;
+  /* Fondo muy claro para destacarlo */
+  border: 1px solid #d9e2ff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.search-container label {
+  font-weight: bold;
+  color: #003153;
+}
+
+.search-input {
+  padding: 10px 15px;
+  border: 2px solid #ccc;
+  border-radius: 20px;
+  /* Borde más redondeado */
+  width: 300px;
+  /* Ancho fijo para el campo de búsqueda */
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.search-input:focus {
+  border-color: #2405F2;
+  /* Color de enfoque azul */
+  outline: none;
+  box-shadow: 0 0 8px rgba(36, 5, 242, 0.2);
+}
+
+/* Estilo para el botón de búsqueda/filtrado (opcional, si usas uno) */
+.btn-search {
+  padding: 10px 15px;
+  background-color: #1A237E;
+  /* Azul marino */
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
+
+.btn-search:hover {
+  background-color: #003153;
+}
+
+/* ------------------------------------------------------------------ */
+/* 7.2. DISEÑO DE SELECTORES (DROPDOWNS) */
+/* ------------------------------------------------------------------ */
+
+.form-group select {
+  /* Reseteo para quitar el estilo nativo en la mayoría de navegadores */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+
+  /* Estilo del campo (similar a input) */
+  padding: 10px 40px 10px 15px;
+  /* Espacio extra a la derecha para la flecha personalizada */
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  /* Borde más suave */
+  background-color: #fff;
+  font-size: 1em;
+  color: #1A237E;
+  cursor: pointer;
+  width: 100%;
+  /* Para que ocupe todo el ancho de su contenedor (.form-group) */
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+/* Estilo al enfocar */
+.form-group select:focus {
+  border-color: #2405F2;
+  /* Color de enfoque azul */
+  outline: none;
+  box-shadow: 0 0 8px rgba(36, 5, 242, 0.2);
+}
+
+/* Contenedor para la flecha (requiere envolver el select para que funcione bien) */
+/* Es crucial que el select esté envuelto en un contenedor para posicionar la flecha personalizada */
+.select-wrapper {
+  position: relative;
+  display: block;
+  /* Para que ocupe el ancho completo */
+  width: 100%;
+}
+
+/* Flecha personalizada usando un pseudo-elemento */
+.select-wrapper::after {
+  content: '▼';
+  /* Símbolo de flecha hacia abajo */
+  font-size: 0.7em;
+  color: #1A237E;
+  position: absolute;
+  top: 50%;
+  right: 15px;
+  transform: translateY(-50%);
+  pointer-events: none;
+  /* Asegura que la flecha no intercepte clics */
+  padding: 0 5px;
+}
+
+/* Estilo para el select cuando está en el contenedor de búsqueda/filtrado */
+.search-container .select-wrapper {
+  width: auto;
+  /* Permite que el contenedor se ajuste al contenido en la barra de búsqueda */
+}
+
+.search-container .form-group select {
+  width: auto;
+  border-radius: 20px;
+  /* Consistencia con el input de búsqueda */
+  min-width: 180px;
+}
+
+/* ------------------------------------------------------------------ */
+/* 7.3. DISEÑO DE GALERÍA (Cuadrícula de Tarjetas) */
+/* ------------------------------------------------------------------ */
+.gallery-grid {
+  display: grid;
+  /* 3 columnas en escritorio, adaptable */
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 25px;
+  /* Separación mayor entre tarjetas */
+  padding: 20px 0;
+}
+
+.gallery-item {
+  /* Estilo de tarjeta consistente con criteria-fieldset */
+  border: 1px solid #e0e0e0;
+  padding: 15px;
+  border-radius: 12px;
+  background-color: #ffffff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
+
+.gallery-item:hover {
+  transform: translateY(-5px);
+}
+
+.gallery-item img,
+.gallery-item video {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  display: block;
+  width: 100%;
+  max-height: 200px;
+  /* Limitar altura visual para uniformidad */
+  object-fit: cover;
+}
+
+.gallery-item p {
+  font-size: 0.95em;
+  color: #1A237E;
+  font-weight: bold;
+  margin: 0;
+}
+
+/* ------------------------------------------------------------------ */
+/* 7.4. DISEÑO DE GALERÍA (Cuadrícula de Tarjetas) */
+/* ------------------------------------------------------------------ */
+/* Contenedor del input file (opcional, para agrupar label y texto) */
+.file-upload-wrapper {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+  /* COLOR: Borde punteado (VERDE AZULADO) */
+  border: 1px dashed #3C847E;
+  padding: 15px;
+  border-radius: 8px;
+  background-color: #f8ffff;
+}
+
+/* Oculta el input file nativo, manteniendo su funcionalidad (es crucial) */
+.file-upload-input {
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+  z-index: -1;
+}
+
+/* Estilo para el LABEL, que actúa como el botón visible */
+.file-upload-label {
+  display: inline-block;
+  cursor: pointer;
+  font-size: 0.9em;
+  font-weight: bold;
+  color: #ffffff;
+  background-color: #4804D9;
+  /* Color de tu CTA primario */
+  padding: 10px 20px;
+  border-radius: 5px;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  text-align: center;
+  max-width: 250px;
+  margin-bottom: 10px;
+  /* Separación del texto del archivo actual */
+}
+
+.file-upload-label:hover {
+  background-color: #2405F2;
+  /* Tono más oscuro al pasar el ratón */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Estilo para mostrar el nombre del archivo seleccionado (lo haremos con JS/PHP si es necesario, pero el p.current-file-info ya funciona) */
+.file-name-display {
+  font-size: 0.85em;
+  color: #0056b3;
+  font-weight: bold;
+}
+
+input[type="file"] {
+  /* CLAVE para ocultar el input real */
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* ------------------------------------------------------------------ */
+/* 7.. Estilos de Formulario (inputs, textareas, selects)
+/* ------------------------------------------------------------------ */
+
+.form-group {
+  max-width: 450px;
+  /* Limita el ancho del grupo de formulario */
+  margin-left: auto;
+  /* Centra el grupo de formulario */
+  margin-right: auto;
+  /* Centra el grupo de formulario */
+  margin-bottom: 20px;
+}
+
+
+/* Estilo general para todos los campos de entrada de texto, email, password y select */
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="password"],
+.form-group input[type="number"],
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  /* Ahora el input ocupa el 100% del form-group (max 450px) */
+  padding: 10px 12px;
+  /* Relleno ligeramente reducido: 12px -> 10px */
+  margin-top: 5px;
+  margin-bottom: 5px;
+  /* Reducido para compactar */
+  display: inline-block;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  /* Bordes ligeramente menos redondeados */
+  box-sizing: border-box;
+  font-size: 0.95em;
+  /* Fuente ligeramente más pequeña */
+  color: #333;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  background-color: #ffffff;
+}
+
+/* Estilo para TEXTAREA */
+.form-group textarea {
+  min-height: 100px;
+  /* Altura mínima ligeramente reducida */
+  resize: vertical;
+}
+
+/* Estilo al enfocar (focus) */
+.form-group input[type="text"]:focus,
+.form-group input[type="email"]:focus,
+.form-group input[type="password"]:focus,
+.form-group input[type="number"]:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: #2405F2;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(36, 5, 242, 0.2);
+  /* Sombra de enfoque ligeramente más pequeña */
+}
+
+/* Estilo para los Labels */
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #003153;
+  font-size: 0.9em;
+  /* Fuente del label ligeramente más pequeña */
+}
+
+/* ================================================================== */
+/* ESTILO ESPECÍFICO PARA INPUT TYPE="DATE" */
+/* ================================================================== */
+
+/* Asegura que los estilos base de 'text-input' se apliquen al input date */
+.text-input[type="date"] {
+  appearance: none;
+  /* Elimina la apariencia nativa en la mayoría de navegadores */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-color: #fff;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1em;
+  color: #333;
+  cursor: pointer;
+  line-height: 1.5;
+  /* Mejora la alineación del texto y el icono */
+  /* El resto de los estilos del .text-input deben aplicarse automáticamente */
+}
+
+/* Foco (Focus) visual */
+.text-input[type="date"]:focus {
+  border-color: #2405F2;
+  /* Color primario al enfocar */
+  box-shadow: 0 0 0 3px rgba(36, 5, 242, 0.2);
+  outline: none;
+}
+
+/* Estilo para el icono desplegable (flecha/calendario) */
+.text-input[type="date"]::-webkit-calendar-picker-indicator {
+  padding: 0;
+  margin-left: 10px;
+  color: #666;
+  /* Color del icono del calendario */
+  opacity: 0.8;
+  cursor: pointer;
+  /* Ocultar si se desea reemplazar con un icono personalizado, si no, dejar visible */
+}
+
+/* Ajuste para que se vea bien dentro del form-group */
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: #1a237e;
+  /* Color oscuro para el label */
+}
+
+/* ================================================================== */
+/* 8. FOOTER Y RESPONSIVE (MEDIA QUERIES) */
+/* ================================================================== */
+
+footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 40px;
+  width: 100%;
+  background-color: #003153;
+  /* Azul oscuro */
+  color: white;
+  margin-top: auto;
+  padding: 15px 40px;
+  /* Esto da espacio lateral al fondo azul, pero es superpuesto por el padding inline */
+}
+
+
+footer p {
+  margin: 0;
+  font-size: 0.9em;
+}
+
+/* Modificación necesaria para que los enlaces se vean bien en el footer oscuro */
+footer a.menu-link {
+  color: white;
+  /* Asegura que el texto del enlace sea visible */
+}
+
+footer a.menu-link:hover .hover-underline-animation:after {
+  background-color: #99f2c8;
+  /* Color de subrayado claro */
+}
+
+footer {
+  padding: 15px 25px;
+  /* COLOR: Fondo del footer */
+  background-color: #003153;
+  /* Este es el color oscuro */
+  color: white;
+  text-align: center;
+  margin-top: auto;
+  flex-shrink: 0;
+}
+
+/* MEDIA QUERIES (Responsividad) */
+@media only screen and (max-width: 768px) {
+
+  /* 1. LAYOUT PRINCIPAL */
+  .admin-main {
+    flex-direction: column;
+    overflow-y: visible;
+  }
+
+  /* 2. NAVEGACIÓN */
+  .admin-nav {
+    border-right: none;
+    background-color: #001F3F;
+    /* Se usa fondo oscuro para el menú colapsado en móvil */
+    color: white;
+    max-height: 200px;
+  }
+
+  .admin-nav h3 {
+    color: #F0F8FF;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .admin-nav ul {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 0 10px;
+    justify-content: center;
+  }
+
+  .admin-nav li {
+    width: 45%;
+    margin: 5px;
+    text-align: center;
+  }
+
+  .admin-nav a {
+    color: #F0F8FF;
+    padding: 8px 10px;
+    border-radius: 5px;
+    font-size: 0.9em;
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .admin-nav a:hover,
+  .admin-nav .active {
+    background-color: #2405F2;
+  }
+
+  /* 3. HEADER */
+  .dashboard-header {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+
+  .dashboard-header h1 {
+    font-size: 1.2em;
+  }
+
+  .user-info {
+    flex-direction: row;
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* 4. TABLAS (Transformación a tarjetas) */
+  table,
+  table thead,
+  table tbody,
+  table th,
+  table td,
+  table tr {
+    display: block;
+    width: 100%;
+  }
+
+  table thead {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+
+  table td {
+    border: none;
+    border-bottom: 1px solid #eee;
+    position: relative;
+    padding-left: 50%;
+    text-align: right;
+    min-height: 35px;
+  }
+
+  /* Añade la etiqueta del encabezado como pseudo-elemento (requiere data-label en el HTML) */
+  table td:before {
+    content: attr(data-label);
+    position: absolute;
+    left: 6px;
+    width: 45%;
+    padding-right: 10px;
+    white-space: nowrap;
+    text-align: left;
+    font-weight: bold;
+    color: #003153;
+  }
+
+  table td a.cta {
+    display: block;
+    text-align: right;
+    font-size: 0.9em;
+  }
+
+  /* 5. STATS GRID (Convierte la rejilla en columna) */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .stat-item {
+    min-width: unset;
+  }
+}
+
+/* ================================================================== */
+/* 9. ESTILOS ESPECÍFICOS DE STAFF / ADMIN */
+/* ================================================================== */
+
+/* Estilo para la sección que contiene los filtros y controles */
+.project-list-controls {
+  /* Layout Flexbox para alinear elementos */
+  display: flex;
+  flex-wrap: wrap;
+  /* Permite que los elementos se muevan en pantallas pequeñas */
+  gap: 20px;
+  justify-content: space-between;
+  /* Mueve los grupos a los lados */
+  align-items: center;
+
+  /* Estilo visual de tarjeta/bloque de control */
+  padding: 20px;
+  margin-bottom: 30px;
+  background-color: #f8f9fa;
+  /* Un gris muy claro para diferenciar */
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+  /* Borde suave */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  /* Sombra ligera */
+}
+
+/* Grupo interno de controles (Label + Select / Button) */
+.controls-group {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  /* Espacio entre label y select/button */
+}
+
+.project-list-controls label {
+  font-weight: 700;
+  /* Negrita para la etiqueta */
+  color: #003153;
+  /* Color azul oscuro del tema */
+  font-size: 0.95em;
+}
+
+/* Estilo para el SELECT (Menú desplegable) */
+.project-list-controls select {
+  padding: 10px 15px;
+  border-radius: 6px;
+  border: 1px solid #ced4da;
+  background-color: white;
+  font-size: 1em;
+  color: #333;
+  transition: border-color 0.3s;
+  /* Eliminar estilo predeterminado en algunos navegadores */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="292.4" height="292.4" viewBox="0 0 292.4 292.4"><path fill="%23003153" d="M287 197.8l-137.2-137.2c-5.8-5.8-15.3-5.8-21.1 0L5.4 197.8c-5.8 5.8-5.8 15.3 0 21.1 5.8 5.8 15.3 5.8 21.1 0l116.7-116.7L265.9 219c5.8 5.8 15.3 5.8 21.1 0 5.8-5.8 5.8-15.3 0-21.1z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 10px top 50%;
+  background-size: 0.65em auto;
+  padding-right: 35px;
+  /* Dejar espacio para el icono */
+}
+
+.project-list-controls select:focus {
+  border-color: #2405F2;
+  /* Color de enfoque */
+  outline: none;
+}
+
+
+/* Media Query para hacerlo responsivo en móviles */
+@media (max-width: 768px) {
+  .project-list-controls {
+    flex-direction: column;
+    /* Apila los grupos en vertical */
+    align-items: flex-start;
+  }
+
+  .controls-group {
+    width: 100%;
+    flex-direction: column;
+    /* Apila Label y Select */
+    align-items: flex-start;
+    gap: 5px;
+  }
+
+  .project-list-controls select {
+    width: 100%;
+  }
+}

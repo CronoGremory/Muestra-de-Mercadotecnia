@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Evaluar Proyecto (Docente) - Muestra Mercadológica</title>
+    <link rel="stylesheet" href="/Estilos/styleflujos.css" />
+    <style>
+      .select-score {
+        width: 100%;
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        background-color: #fff;
+        font-size: 1em;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="wrapper">
+      <div class="contenido">
+        <div class="admin-container">
+          <header class="dashboard-header">
+            <h1>Muestra Mercadológica</h1>
+            <div class="user-info">
+              <span id="user-name-display">Docente: [Cargando...]</span>
+              <a href="/Modelos/login.html" class="menu-link">
+                <span class="hover-underline-animation">Cerrar Sesión</span>
+              </a>
+            </div>
+          </header>
+
+          <main class="admin-content" style="flex-grow: 1">
+            <h2>Evaluar Proyecto (Académico): <span id="nombre-proyecto">...</span></h2>
+            <p style="margin-bottom: 25px">
+              <strong>Evaluación Académica (40%)</strong>
+            </p>
+
+            <section class="project-files-viewer">
+              <h3>Visualización del Proyecto</h3>
+              <p class="info-note">
+                Haz clic para abrir el documento PDF en una nueva ventana.
+              </p>
+              <div class="file-display-area" style="display: flex; gap: 15px; margin-top: 15px">
+                <a href="#" class="animated-button" onclick="alert('Funcionalidad de ver archivo en desarrollo')">
+                  <span></span><span></span><span></span><span></span> Ver PDF del Proyecto
+                </a>
+              </div>
+            </section>
+
+            <form id="evaluationForm" style="margin-top: 30px">
+              
+              <div id="criteria-container">
+                <p style="text-align: center;">Cargando rúbrica académica...</p>
+              </div>
+
+              <div class="criteria-group form-group general-comments-section">
+                <label for="general_comments">
+                  Comentarios Generales (Perspectiva Académica):
+                </label>
+                <textarea
+                  id="general_comments"
+                  name="general_comments"
+                  placeholder="Feedback sobre metodología, aplicación teórica, etc."
+                  rows="5"
+                ></textarea>
+              </div>
+
+              <div id="form-message" style="margin-top: 15px; font-weight: bold; text-align: center;"></div>
+
+              <div class="form-actions" style="text-align: right; margin-top: 30px">
+                <a href="/Modelos/Docente/dashboard_docente.html" class="menu-link" style="margin-right: 15px">
+                  <span class="hover-underline-animation">Cancelar</span>
+                </a>
+                <button type="submit" id="submitButton" class="animated-button">
+                  <span></span><span></span><span></span><span></span> Enviar Evaluación
+                </button>
+              </div>
+            </form>
+          </main>
+
+<footer
+  class="d-flex flex-wrap justify-content-center align-items-center py-3 mt-auto"
+  style="background-color: #f0f0f0; width: 100%; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;"
+>
+  <div class="d-flex align-items-center justify-content-center">
+    <img
+      src="/Recursos/UAA-LOGO.png"
+      alt="Logo UAA"
+      style="height: 80px; margin-right: 15px"
+      class="my-1"
+    />
+    <span class="mb-3 mb-md-0 text-dark">
+      &copy; 2025 Muestra Mercadológica UAA
+    </span>
+  </div>
+</footer>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const userName = sessionStorage.getItem('userName');
+        if (userName) document.getElementById("user-name-display").textContent = `Docente: ${userName}`;
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const idAsignacion = urlParams.get('idAsignacion');
+        const criteriaContainer = document.getElementById("criteria-container");
+        const form = document.getElementById("evaluationForm");
+        const messageDiv = document.getElementById("form-message");
+        const submitButton = document.getElementById("submitButton");
+
+        if (!idAsignacion) {
+          criteriaContainer.innerHTML = "<p style='color: red;'>Error: ID de asignación no encontrado.</p>";
+          return;
+        }
+
+        // 1. Obtener Criterios (Rol = Docente)
+        fetch(`/api/evaluacion/criterios?idAsignacion=${idAsignacion}&rolEvaluador=Docente`)
+          .then(res => {
+            if(!res.ok) throw new Error("Error al cargar rúbrica.");
+            return res.json();
+          })
+          .then(criterios => {
+            criteriaContainer.innerHTML = "";
+            const fieldset = document.createElement("fieldset");
+            fieldset.className = "criteria-fieldset";
+            fieldset.innerHTML = "<legend>Criterios Académicos</legend>";
+            
+            criterios.forEach(criterio => {
+              const div = document.createElement("div");
+              div.className = "criteria-group form-group";
+              
+              // Generar opciones 1-10
+              let optionsHtml = '<option value="">-- Selecciona Calificación --</option>';
+              for(let i=10; i>=1; i--) {
+                  optionsHtml += `<option value="${i}">${i}</option>`;
+              }
+
+              div.innerHTML = `
+                <label>${criterio.nombreCriterio}</label>
+                <select name="criterio_${criterio.idCriterio}" class="select-score" required>
+                    ${optionsHtml}
+                </select>
+              `;
+              fieldset.appendChild(div);
+            });
+            criteriaContainer.appendChild(fieldset);
+          })
+          .catch(err => criteriaContainer.innerHTML = `<p style='color:red'>${err.message}</p>`);
+
+        // 2. Enviar Evaluación
+        form.addEventListener("submit", (e) => {
+          e.preventDefault();
+          submitButton.disabled = true;
+          messageDiv.textContent = "Enviando...";
+          messageDiv.style.color = "blue";
+
+          const formData = new FormData(form);
+          const respuestas = [];
+
+          for (let [key, value] of formData.entries()) {
+            if (key.startsWith("criterio_")) {
+              respuestas.push({
+                IdCriterio: parseInt(key.split("_")[1]),
+                PuntajeObtenido: parseFloat(value),
+                Comentarios: "" 
+              });
+            }
+          }
+          
+          // Agregar comentario general al primer criterio
+          const generalComment = document.getElementById("general_comments").value;
+          if(respuestas.length > 0) respuestas[0].Comentarios = generalComment;
+
+          const submitData = {
+            IdAsignacion: parseInt(idAsignacion),
+            Respuestas: respuestas
+          };
+
+          fetch("/api/evaluacion/submit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(submitData)
+          })
+          .then(res => res.json().then(d => ({ok: res.ok, body: d})))
+          .then(({ok, body}) => {
+            if(ok) {
+                messageDiv.textContent = "Evaluación guardada correctamente.";
+                messageDiv.style.color = "green";
+                setTimeout(() => window.location.href = "/Modelos/Docente/dashboard_docente.html", 2000);
+            } else {
+                throw new Error(body.message);
+            }
+          })
+          .catch(err => {
+            messageDiv.textContent = "Error: " + err.message;
+            messageDiv.style.color = "red";
+            submitButton.disabled = false;
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Monitor de Progreso - Administración Muestra Mercadológica</title>
+    <link rel="stylesheet" href="/Estilos/styleflujos.css" />
+  </head>
+  <body>
+    <div class="wrapper">
+      <div class="contenido">
+        <div class="admin-container">
+          <header class="dashboard-header">
+            <h1>Panel de Administración</h1>
+            <div class="user-info">
+              <span id="admin-name-display">Admin: ...</span>
+              <a href="/Modelos/login.html" class="menu-link">
+                <span class="hover-underline-animation">Cerrar Sesión</span>
+              </a>
+            </div>
+          </header>
+          <div class="admin-main">
+            <aside class="admin-nav">
+              <h3>Menú Principal</h3>
+              <ul>
+                <li>
+                  <a href="admin_overview.html" class="menu-link">
+                    <span class="hover-underline-animation">Resumen General</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_users.html" class="menu-link">
+                    <span class="hover-underline-animation">Gestionar Usuarios</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_projects.html" class="menu-link">
+                    <span class="hover-underline-animation">Gestionar Proyectos</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_assignments.html" class="menu-link">
+                    <span class="hover-underline-animation">Asignar Evaluadores</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_progress.html" class="menu-link">
+                    <span class="hover-underline-animation">Monitor de Progreso</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_results.html" class="menu-link">
+                    <span class="hover-underline-animation">Calcular/Ver Resultados</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_reports.html" class="menu-link">
+                    <span class="hover-underline-animation">Generar Reportes</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_certificates.html" class="menu-link">
+                    <span class="hover-underline-animation">Gestión Constancias</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_gallery.html" class="menu-link">
+                    <span class="hover-underline-animation">Gestionar Galería</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_settings.html" class="menu-link">
+                    <span class="hover-underline-animation">Configuración Evento</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_whatsapp.html" class="menu-link">
+                    <span class="hover-underline-animation" style="color: #25D366;">Bot WhatsApp</span>
+                  </a>
+                </li>
+              </ul>
+            </aside>
+            <main class="admin-content">
+              <section id="progress" class="admin-section">
+                <h3>Monitor de Progreso de Evaluaciones</h3>
+                
+                <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 30px;">
+                    <p><strong>Progreso General:</strong></p>
+                    <div style="background-color: #e9ecef; border-radius: 4px; overflow: hidden; height: 30px; margin-bottom: 10px;">
+                        <div id="progressBar" style="background-color: #2405F2; color: white; text-align: center; line-height: 30px; width: 0%; transition: width 1s;">
+                            0%
+                        </div>
+                    </div>
+                    <p id="progressText" style="text-align: center; color: #666;">(Cargando datos...)</p>
+                </div>
+
+                <h4>Detalle por Proyecto/Evaluador</h4>
+                <button class="btn-secondary" onclick="loadProgress()" style="margin-bottom: 15px;">Actualizar Datos</button>
+                
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Nombre del Proyecto</th>
+                      <th>Evaluador Asignado</th>
+                      <th>Estado de Evaluación</th>
+                    </tr>
+                  </thead>
+                  <tbody id="progressTableBody">
+                    <tr><td colspan="3" style="text-align: center;">Cargando...</td></tr>
+                  </tbody>
+                </table>
+              </section>
+            </main>
+          </div>
+          <footer
+  class="d-flex flex-wrap justify-content-center align-items-center py-3 mt-auto"
+  style="background-color: #f0f0f0; width: 100%; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;"
+>
+  <div class="d-flex align-items-center justify-content-center">
+    <img
+      src="/Recursos/UAA-LOGO.png"
+      alt="Logo UAA"
+      style="height: 80px; margin-right: 15px"
+      class="my-1"
+    />
+    <span class="mb-3 mb-md-0 text-dark">
+      &copy; 2025 Muestra Mercadológica UAA
+    </span>
+  </div>
+</footer>
+        </div>
+      </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const userName = sessionStorage.getItem('userName');
+            if(userName) document.getElementById('admin-name-display').textContent = `Admin: ${userName}`;
+            loadProgress();
+        });
+
+        function loadProgress() {
+            fetch('/api/admin/progress')
+            .then(r => r.json())
+            .then(data => {
+                // 1. Actualizar Barra
+                const resumen = data.resumen;
+                const bar = document.getElementById('progressBar');
+                const text = document.getElementById('progressText');
+                
+                bar.style.width = `${resumen.porcentaje}%`;
+                bar.textContent = `${resumen.porcentaje}%`;
+                text.textContent = `(${resumen.completadas} de ${resumen.total} evaluaciones completadas)`;
+
+                // 2. Actualizar Tabla
+                const tbody = document.getElementById('progressTableBody');
+                tbody.innerHTML = '';
+
+                if (data.lista.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3" style="text-align: center;">No hay asignaciones registradas.</td></tr>';
+                    return;
+                }
+
+                data.lista.forEach(item => {
+                    let color = '#dc3545'; // Rojo (Pendiente)
+                    let textoEstado = 'Pendiente';
+                    
+                    if (item.estado === 'Completada') {
+                        color = '#28a745'; // Verde
+                        textoEstado = 'Completada';
+                    }
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${item.proyecto}</td>
+                        <td>${item.evaluador}</td>
+                        <td><span style="color: ${color}; font-weight: bold;">${textoEstado}</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            })
+            .catch(err => console.error(err));
+        }
+    </script>
+  </body>
+</html>

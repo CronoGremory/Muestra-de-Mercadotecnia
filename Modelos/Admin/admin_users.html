@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestión de Usuarios - Admin</title>
+    <link rel="stylesheet" href="/Estilos/styleflujos.css" />
+  </head>
+
+  <body>
+    <div class="wrapper">
+      <div class="contenido">
+        <div class="admin-container">
+          <header class="dashboard-header">
+            <h1>Panel de Administración</h1>
+            <div class="user-info">
+              <span id="user-name-display">Admin: [Cargando...]</span>
+              <a href="/Modelos/login.html" class="menu-link">
+                <span class="hover-underline-animation">Cerrar Sesión</span>
+              </a>
+            </div>
+          </header>
+          <div class="admin-main">
+           <aside class="admin-nav">
+              <h3>Menú Principal</h3>
+              <ul>
+                <li>
+                  <a href="admin_overview.html" class="menu-link">
+                    <span class="hover-underline-animation">Resumen General</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_users.html" class="menu-link">
+                    <span class="hover-underline-animation">Gestionar Usuarios</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_projects.html" class="menu-link">
+                    <span class="hover-underline-animation">Gestionar Proyectos</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_assignments.html" class="menu-link">
+                    <span class="hover-underline-animation">Asignar Evaluadores</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_progress.html" class="menu-link">
+                    <span class="hover-underline-animation">Monitor de Progreso</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_results.html" class="menu-link">
+                    <span class="hover-underline-animation">Calcular/Ver Resultados</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_reports.html" class="menu-link">
+                    <span class="hover-underline-animation">Generar Reportes</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_certificates.html" class="menu-link">
+                    <span class="hover-underline-animation">Gestión Constancias</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_gallery.html" class="menu-link">
+                    <span class="hover-underline-animation">Gestionar Galería</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_settings.html" class="menu-link">
+                    <span class="hover-underline-animation">Configuración Evento</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_whatsapp.html" class="menu-link">
+                    <span class="hover-underline-animation" style="color: #25D366;">Bot WhatsApp</span>
+                  </a>
+                </li>
+              </ul>
+            </aside>
+
+            <main class="admin-content" id="admin-main-content">
+              
+              <h2>Crear Nuevo Usuario (Staff, Docente, Evaluador)</h2>
+              
+              <div id="createMessage" style="margin-top: 15px; font-weight: bold; text-align: center;"></div>
+
+              <form id="createUserForm" class="criteria-fieldset">
+                <legend>Datos del Usuario</legend>
+                
+                <div class="form-group">
+                  <label for="new_name">Nombre Completo:</label>
+                  <input type="text" id="new_name" name="nombre" required />
+                </div>
+                
+                <div class="form-group">
+                  <label for="new_email">Correo (Será su usuario):</label>
+                  <input type="email" id="new_email" name="correo" required />
+                </div>
+                
+                <div class="form-group">
+                  <label for="new_password">Contraseña:</label>
+                  <input type="password" id="new_password" name="password" required />
+                </div>
+                
+                <div class="form-group">
+                  <label for="new_role">Rol del Usuario:</label>
+                  <div class="select-wrapper">
+                    <select id="new_role" name="idRol" required>
+                      <option value="">Selecciona un rol...</option>
+                      <option value="1">Administrador</option>
+                      <option value="2">Staff</option>
+                      <option value="3">Docente</option>
+                      <option value="5">Evaluador</option>
+                      </select>
+                  </div>
+                </div>
+
+                <button type="submit" class="animated-button">
+                  <span></span><span></span><span></span><span></span>Crear Usuario
+                </button>
+              </form>
+
+              <hr style="margin: 40px 0; border-top: 2px dashed #ccc;">
+
+              <h2>Lista de Usuarios Existentes</h2>
+              
+              <table id="usersTable">
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th>Rol</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                  <tr><td colspan="4">Cargando usuarios...</td></tr>
+                </tbody>
+              </table>
+              </main>
+          </div>
+
+           <footer
+  class="d-flex flex-wrap justify-content-center align-items-center py-3 mt-auto"
+  style="background-color: #f0f0f0; width: 100%; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;"
+>
+  <div class="d-flex align-items-center justify-content-center">
+    <img
+      src="/Recursos/UAA-LOGO.png"
+      alt="Logo UAA"
+      style="height: 80px; margin-right: 15px"
+      class="my-1"
+    />
+    <span class="mb-3 mb-md-0 text-dark">
+      &copy; 2025 Muestra Mercadológica UAA
+    </span>
+  </div>
+</footer>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        
+        const userName = sessionStorage.getItem('userName');
+        // Aquí mostraríamos el nombre del admin
+        if(userName) document.getElementById('user-name-display').textContent = `Admin: ${userName}`;
+
+        // 1. FUNCIÓN PARA CARGAR LA TABLA DE USUARIOS
+        function loadUsers() {
+            fetch('/api/admin/users')
+            .then(res => res.json())
+            .then(users => {
+                const tbody = document.getElementById('usersTableBody');
+                tbody.innerHTML = '';
+                
+                users.forEach(user => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${user.nombre}</td>
+                        <td>${user.correo}</td>
+                        <td>${user.rol}</td>
+                        <td>
+                            <button class="btn-secondary" onclick="deleteUser(${user.idUsuario})" style="color: red; border-color: red;">Eliminar</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            });
+        }
+
+        // 2. MANEJAR EL FORMULARIO DE CREACIÓN
+        const createUserForm = document.getElementById('createUserForm');
+        const messageDiv = document.getElementById('createMessage');
+
+        createUserForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            messageDiv.textContent = "Procesando...";
+            
+            const formData = new FormData(createUserForm);
+
+            try {
+                const response = await fetch('/api/admin/create-user', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const body = await response.json();
+
+                if (response.ok) {
+                    messageDiv.style.color = 'green';
+                    messageDiv.textContent = body.message; 
+                    createUserForm.reset(); // Limpia el formulario
+                    loadUsers(); // Recarga la tabla
+                } else {
+                    messageDiv.style.color = 'red';
+                    messageDiv.textContent = `Error: ${body.message}`;
+                }
+            } catch (error) {
+                console.error(error);
+                messageDiv.style.color = 'red';
+                messageDiv.textContent = 'Error de conexión.';
+            }
+        });
+
+        // 3. FUNCIÓN GLOBAL PARA ELIMINAR (Para que el onclick funcione)
+        window.deleteUser = async (id) => {
+            if(!confirm('¿Estás seguro de eliminar este usuario?')) return;
+            
+            await fetch(`/api/admin/delete-user/${id}`, { method: 'DELETE' });
+            loadUsers();
+        };
+
+        // Cargar usuarios al iniciar
+        loadUsers();
+      });
+    </script>
+  </body>
+</html>

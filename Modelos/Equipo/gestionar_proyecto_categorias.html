@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestionar Proyectos por Categoría - Muestra Mercadológica</title>
+    <link rel="stylesheet" href="/Estilos/styleflujos.css" type="text/css" />
+  </head>
+
+  <body>
+    <div class="wrapper">
+      <div class="contenido">
+        <div class="admin-container">
+          <header class="dashboard-header">
+            <h1>Muestra Mercadológica</h1>
+            <div class="user-info">
+              <span id="team-name-display">Equipo: [Cargando...]</span>
+              <a href="/Modelos/login.html" class="menu-link">
+                <span class="hover-underline-animation">Cerrar Sesión</span>
+              </a>
+            </div>
+          </header>
+
+          <main style="padding: 25px 40px; flex-grow: 1">
+            <h2>Gestionar Proyectos por Categoría</h2>
+            <p
+              class="info-note"
+              style="
+                border-left-color: #2405f2;
+                background-color: rgba(36, 5, 242, 0.05);
+              "
+            >
+              Aquí puedes inscribirte a las categorías disponibles y subir los
+              archivos correspondientes para cada una de tus participaciones.
+            </p>
+
+            <section
+              id="inscribir-categoria"
+              class="add-category-section"
+              style="
+                margin-bottom: 30px;
+                padding: 20px;
+                background-color: #fff;
+                border-radius: 8px;
+                box-shadow: 0 5px 15px rgba(61, 64, 91, 0.05);
+              "
+            >
+              <h3>Inscribir Proyecto a Nueva Categoría</h3>
+              <form id="inscriptionForm">
+                
+                <div class="form-group">
+                  <label for="nombre-proyecto">Nombre del Proyecto:</label>
+                  <input type="text" id="nombre-proyecto" name="nombre_proyecto" required />
+                </div>
+                
+                <div class="form-group">
+                  <label for="select-category"
+                    >Selecciona la Categoría en la que deseas participar:</label
+                  >
+                  <div class="select-wrapper">
+                    <select id="select-category" name="category_id" required>
+                      <option value="">-- Cargando categorías... --</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div id="inscription-message" style="margin-top: 15px; font-weight: bold;"></div>
+                
+                <button type="submit" class="animated-button">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                  Inscribirme a esta Categoría
+                </button>
+              </form>
+            </section>
+
+            <hr
+              style="
+                border-color: #99f2c8;
+                border-style: dashed;
+                margin-bottom: 30px;
+              "
+            />
+
+            <section id="proyectos-inscritos-container">
+                <h3>Gestionar Proyectos Inscritos</h3>
+                </section>
+
+            <div>
+              <a href="/Modelos/Equipo/dashboard_equipo_multicategoria.html" class="menu-link">
+                <span class="hover-underline-animation">
+                  &laquo; Volver al Panel de Control del Equipo</span
+                ></a
+              >
+            </div>
+          </main>
+
+          <footer
+  class="d-flex flex-wrap justify-content-center align-items-center py-3 mt-auto"
+  style="background-color: #f0f0f0; width: 100%; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;"
+>
+  <div class="d-flex align-items-center justify-content-center">
+    <img
+      src="/Recursos/UAA-LOGO.png"
+      alt="Logo UAA"
+      style="height: 80px; margin-right: 15px"
+      class="my-1"
+    />
+    <span class="mb-3 mb-md-0 text-dark">
+      &copy; 2025 Muestra Mercadológica UAA
+    </span>
+  </div>
+</footer>
+        </div>
+      </div>
+    </div>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const userId = sessionStorage.getItem('userId');
+        const userName = sessionStorage.getItem('userName');
+        
+        const teamNameDisplay = document.getElementById("team-name-display");
+        const categorySelect = document.getElementById("select-category");
+        const inscriptionForm = document.getElementById("inscriptionForm");
+        const messageDiv = document.getElementById("inscription-message");
+
+        if (userName) {
+          teamNameDisplay.textContent = `Equipo: ${userName}`;
+        }
+        if (!userId) {
+          teamNameDisplay.textContent = "Error: Inicia sesión de nuevo.";
+          categorySelect.innerHTML = "<option value=''>Error al cargar</option>";
+          return;
+        }
+
+        // 1. Cargar las categorías disponibles
+        fetch(`/api/equipo/categorias-disponibles?userId=${userId}`)
+          .then(response => response.json())
+          .then(categorias => {
+            categorySelect.innerHTML = "<option value=''>-- Elige una categoría --</option>"; // Limpiar "Cargando..."
+            if (categorias.length === 0) {
+                 categorySelect.innerHTML = "<option value=''>-- Ya estás inscrito en todas las categorías --</option>";
+                 // Deshabilitamos el formulario si no hay nada que inscribir
+                 inscriptionForm.querySelector("button").disabled = true;
+                 document.getElementById("nombre-proyecto").disabled = true;
+                 return;
+            }
+            
+            categorias.forEach(cat => {
+              const option = document.createElement("option");
+              option.value = cat.idCategoria;
+              option.textContent = cat.nombreCategoria;
+              categorySelect.appendChild(option);
+            });
+          })
+          .catch(err => {
+            console.error("Error al cargar categorías:", err);
+            categorySelect.innerHTML = "<option value=''>Error al cargar categorías</option>";
+          });
+
+        // 2. Manejar el envío del formulario de inscripción
+        inscriptionForm.addEventListener("submit", (event) => {
+          event.preventDefault();
+          messageDiv.textContent = "Inscribiendo...";
+          messageDiv.style.color = "blue";
+          
+          const selectedCategoryId = categorySelect.value;
+          const nombreProyecto = document.getElementById("nombre-proyecto").value;
+
+          if (!selectedCategoryId || !nombreProyecto) {
+            messageDiv.textContent = "Error: Debes seleccionar una categoría y escribir un nombre para el proyecto.";
+            messageDiv.style.color = "red";
+            return;
+          }
+
+          const data = {
+            UserId: parseInt(userId),
+            IdCategoria: parseInt(selectedCategoryId),
+            NombreProyecto: nombreProyecto
+          };
+
+          fetch("/api/equipo/inscribir", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+          })
+          .then(response => response.json().then(data => ({ ok: response.ok, body: data })))
+          .then(({ ok, body }) => {
+            if (ok) {
+              messageDiv.textContent = body.message;
+              messageDiv.style.color = "green";
+              // Redirigir al dashboard principal después de 2 segundos
+              setTimeout(() => {
+                window.location.href = "/Modelos/Equipo/dashboard_equipo_multicategoria.html";
+              }, 2000);
+            } else {
+              throw new Error(body.message);
+            }
+          })
+          .catch(error => {
+            messageDiv.textContent = `Error: ${error.message}`;
+            messageDiv.style.color = "red";
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

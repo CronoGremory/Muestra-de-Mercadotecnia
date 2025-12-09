@@ -1,0 +1,25 @@
+# --- .NET Core ---
+bin/
+obj/
+.vs/
+.vscode/
+*.user
+*.pdb
+*.cache
+*.dll
+*.exe
+
+# --- Archivos de Configuración Sensibles ---
+appsettings.Development.json
+
+# --- WhatsApp Bot (Selenium) ---
+WhatsAppBot_Sesion_Muestra/
+**/WhatsAppBot_Sesion_Muestra/
+
+# --- Sistema Operativo ---
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# --- Docker ---
+docker-compose.override.yml

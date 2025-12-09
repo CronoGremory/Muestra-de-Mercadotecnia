@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Restablecer Contraseña</title>
+    <link rel="stylesheet" href="/Estilos/styleflujos.css" />
+  </head>
+  <body>
+    <div class="wrapper">
+      <div class="contenido">
+        <div class="container homepage-container">
+          <header>
+            <h1>Restablecer Contraseña</h1>
+          </header>
+          <main>
+            <form id="resetForm">
+              <input type="hidden" id="token" name="Token" />
+              
+              <div class="form-group">
+                <label>Nueva Contraseña:</label>
+                <input type="password" name="NewPassword" required />
+              </div>
+              <div class="form-group">
+                <label>Confirmar Contraseña:</label>
+                <input type="password" name="ConfirmPassword" required />
+              </div>
+              <button type="submit" class="animated-button">Cambiar Contraseña</button>
+            </form>
+            <div id="msg" style="margin-top: 15px; font-weight: bold;"></div>
+          </main>
+        </div>
+      </div>
+    </div>
+
+    <script>
+        // Obtener el token de la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        
+        if(!token) {
+            document.body.innerHTML = "<h2 style='text-align:center; color:red; margin-top:50px;'>Enlace inválido (Falta token).</h2>";
+        } else {
+            document.getElementById('token').value = token;
+        }
+
+        document.getElementById('resetForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            
+            const res = await fetch('/api/auth/reset-password', { method: 'POST', body: formData });
+            const data = await res.json();
+            
+            const msg = document.getElementById('msg');
+            if(res.ok) {
+                msg.style.color = 'green';
+                msg.textContent = data.message;
+                setTimeout(() => window.location.href = 'login.html', 2000);
+            } else {
+                msg.style.color = 'red';
+                msg.textContent = data.message;
+            }
+        });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Galería - Muestra Mercadológica</title>
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+
+    <link rel="stylesheet" href="../Estilos/styleflujos.css" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+        padding: 20px 0;
+      }
+      .gallery-item {
+        background: #fff;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+        cursor: pointer;
+      }
+      .gallery-item:hover {
+        transform: translateY(-5px);
+      }
+      .gallery-item img,
+      .gallery-item video {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        display: block;
+      }
+      .gallery-item p {
+        padding: 15px;
+        margin: 0;
+        font-size: 0.9em;
+        color: #333;
+        font-weight: bold;
+      }
+      /* Ajuste para asegurar que el footer se quede abajo si hay poco contenido */
+      .admin-container {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      main.admin-content {
+        flex-grow: 1;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="wrapper">
+      <div class="contenido admin-container">
+        <header class="dashboard-header">
+          <h1>Muestra Mercadológica - Galería</h1>
+          <div class="user-info">
+            <div class="user-info">
+              <a href="index.html" class="menu-link">
+                <span class="hover-underline-animation">Volver al inicio</span>
+              </a>
+            </div>
+          </div>
+        </header>
+
+        <main class="admin-content">
+          <h2>Momentos Destacados del Evento</h2>
+
+          <div
+            id="carouselExampleCaptions"
+            class="carousel slide"
+            data-bs-ride="carousel"
+            style="
+              border-radius: 12px;
+              overflow: hidden;
+              box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+              margin-top: 20px;
+              margin-bottom: 30px;
+            "
+          >
+            <div class="carousel-indicators">
+              <button
+                type="button"
+                data-bs-target="#carouselExampleCaptions"
+                data-bs-slide-to="0"
+                class="active"
+                aria-current="true"
+                aria-label="Slide 1"
+              ></button>
+              <button
+                type="button"
+                data-bs-target="#carouselExampleCaptions"
+                data-bs-slide-to="1"
+                aria-label="Slide 2"
+              ></button>
+              <button
+                type="button"
+                data-bs-target="#carouselExampleCaptions"
+                data-bs-slide-to="2"
+                aria-label="Slide 3"
+              ></button>
+            </div>
+
+            <div class="carousel-inner">
+              <div class="carousel-item active">
+                <img
+                  src="../Recursos/img12.jpg"
+                  class="d-block w-100"
+                  alt="Vista aérea del evento"
+                  style="height: 400px; object-fit: cover"
+                />
+                <div
+                  class="carousel-caption d-none d-md-block"
+                  style="
+                    background-color: rgba(0, 0, 0, 0.5);
+                    border-radius: 8px;
+                  "
+                >
+                  <h5>¡Proyecto Estrella de la Edición!</h5>
+                  <p>
+                    Ganadores y sus patrocinadores recibiendo el gran premio.
+                  </p>
+                </div>
+              </div>
+              <div class="carousel-item">
+                <img
+                  src="../Recursos/img11.jpg"
+                  class="d-block w-100"
+                  alt="Ceremonia de apertura"
+                  style="height: 400px; object-fit: cover"
+                />
+                <div
+                  class="carousel-caption d-none d-md-block"
+                  style="
+                    background-color: rgba(0, 0, 0, 0.5);
+                    border-radius: 8px;
+                  "
+                >
+                  <h5>Inauguración Oficial</h5>
+                  <p>
+                    Las palabras de bienvenida del Rectorado y autoridades.
+                  </p>
+                </div>
+              </div>
+              <div class="carousel-item">
+                <img
+                  src="../Recursos/img10.jpg"
+                  class="d-block w-100"
+                  alt="Área de networking"
+                  style="height: 400px; object-fit: cover"
+                />
+                <div
+                  class="carousel-caption d-none d-md-block"
+                  style="
+                    background-color: rgba(0, 0, 0, 0.5);
+                    border-radius: 8px;
+                  "
+                >
+                  <h5>Sesión de Networking y Contactos</h5>
+                  <p>Estudiantes y profesionales creando sinergias futuras.</p>
+                </div>
+              </div>
+            </div>
+
+            <button
+              class="carousel-control-prev"
+              type="button"
+              data-bs-target="#carouselExampleCaptions"
+              data-bs-slide="prev"
+            >
+              <span
+                class="carousel-control-prev-icon"
+                aria-hidden="true"
+              ></span>
+              <span class="visually-hidden">Previous</span>
+            </button>
+            <button
+              class="carousel-control-next"
+              type="button"
+              data-bs-target="#carouselExampleCaptions"
+              data-bs-slide="next"
+            >
+              <span
+                class="carousel-control-next-icon"
+                aria-hidden="true"
+              ></span>
+              <span class="visually-hidden">Next</span>
+            </button>
+          </div>
+          <section class="gallery-section">
+            <h3 style="margin-top: 30px">Cuadrícula de Proyectos y Momentos</h3>
+            <p style="margin-bottom: 30px">
+              Haz clic en la imagen o video para ver el detalle.
+            </p>
+
+            <div id="gallery-container" class="gallery-grid">
+              <p style="text-align: center; width: 100%">
+                Cargando galería...
+              </p>
+            </div>
+          </section>
+        </main>
+
+        <footer
+          class="d-flex flex-wrap justify-content-between align-items-center py-3 mt-auto"
+          style="background-color: #f0f0f0; width: 100%"
+        >
+          <div class="col-md-5 d-flex align-items-center ms-4">
+            <img
+              src="../Recursos/UAA-LOGO.png"
+              alt="Logo UAA"
+              style="height: 70px; margin-right: 15px"
+              class="my-1"
+            />
+            <span class="mb-3 mb-md-0 text-dark">
+              &copy; 2025 Muestra Mercadológica UAA
+            </span>
+          </div>
+
+          <div
+            class="col-md-6 d-flex justify-content-end align-items-center me-4"
+          >
+            <a
+              href="https://www.facebook.com/[tu-pagina]"
+              class="menu-link mx-2"
+            >
+              <img
+                src="../Recursos/2023_Facebook_icon.svg.png"
+                alt="Facebook"
+                style="height: 50px; max-width: none"
+              />
+            </a>
+
+            <a
+              href="https://www.instagram.com/mercadotecnia_uaa/"
+              class="menu-link ms-2"
+            >
+              <img
+                src="../Recursos/Instagram-Logo-2016.png"
+                alt="Instagram"
+                style="height: 50px; max-width: none"
+              />
+            </a>
+          </div>
+        </footer>
+      </div>
+    </div>
+
+    <div
+      class="modal fade"
+      id="projectModal"
+      tabindex="-1"
+      aria-labelledby="modalTitle"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+          <div
+            class="modal-header"
+            style="background-color: #003153; color: white"
+          >
+            <h5 class="modal-title" id="modalTitle">Detalle de Contenido</h5>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body text-center" id="modalBody">
+            <p>Cargando contenido...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const container = document.getElementById("gallery-container");
+        const modalBody = document.getElementById("modalBody");
+        const modalTitle = document.getElementById("modalTitle");
+        
+        // Inicializar el modal de Bootstrap vía JS
+        const projectModal = new bootstrap.Modal(
+          document.getElementById("projectModal")
+        );
+
+        // 1. Cargar Galería desde la API
+        fetch("/api/public/gallery")
+          .then((res) => res.json())
+          .then((items) => {
+            container.innerHTML = "";
+
+            if (items.length === 0) {
+              container.innerHTML =
+                "<p style='text-align:center; width:100%;'>Aún no hay elementos en la galería.</p>";
+              return;
+            }
+
+            items.forEach((item) => {
+              const div = document.createElement("div");
+              div.className = "gallery-item";
+
+              let mediaHtml = "";
+              // Verificamos si es video o imagen
+              if (item.tipo === "video") {
+                // Video en miniatura (sin autoplay para no saturar)
+                mediaHtml = `<video src="${item.ruta}" style="pointer-events: none;"></video>`;
+              } else {
+                mediaHtml = `<img src="${item.ruta}" alt="${item.descripcion}">`;
+              }
+
+              div.innerHTML = `
+                  ${mediaHtml}
+                  <p>${item.descripcion}</p>
+              `;
+
+              // 2. Evento Click: Abrir Modal con contenido dinámico
+              div.addEventListener("click", () => {
+                let content = "";
+                
+                if (item.tipo === "video") {
+                  content = `
+                      <div class="ratio ratio-16x9 mx-auto" style="max-width: 90%;">
+                        <video controls autoplay class="d-block" style="border-radius: 8px; width: 100%;">
+                          <source src="${item.ruta}" type="video/mp4">
+                          Tu navegador no soporta el formato de video.
+                        </video>
+                      </div>
+                      <p class="mt-3 fs-5 fw-bold text-dark">${item.descripcion}</p>
+                  `;
+                } else {
+                  content = `
+                      <img 
+                        src="${item.ruta}" 
+                        class="img-fluid" 
+                        style="max-height: 70vh; width: auto; border-radius: 8px;"
+                        alt="${item.descripcion}"
+                      >
+                      <p class="mt-3 fs-5 fw-bold text-dark">${item.descripcion}</p>
+                  `;
+                }
+
+                // Actualizar título y cuerpo del modal
+                modalTitle.textContent = item.descripcion.length > 50 
+                    ? "Detalle" 
+                    : item.descripcion;
+                modalBody.innerHTML = content;
+                
+                projectModal.show();
+              });
+
+              container.appendChild(div);
+            });
+          })
+          .catch((err) => {
+            console.error(err);
+            container.innerHTML =
+              "<p style='color:red; text-align:center;'>Error al conectar con el servidor.</p>";
+          });
+
+        // 3. Limpiar video al cerrar modal (Detener reproducción)
+        document
+          .getElementById("projectModal")
+          .addEventListener("hidden.bs.modal", () => {
+            modalBody.innerHTML = ""; // Esto destruye el elemento video y detiene el audio
+          });
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Panel de Equipo - Muestra Mercadológica</title>
+    <link rel="stylesheet" href="/Estilos/styleflujos.css" />
+  </head>
+
+  <body>
+    <div class="wrapper">
+      <div class="contenido">
+        <div class="admin-container">
+          <header class="dashboard-header">
+            <h1>Muestra Mercadológica</h1>
+            <div class="user-info">
+              <span id="team-name-display">Equipo: [Cargando...]</span>
+              <a href="/Modelos/login.html" class="menu-link">
+                <span class="hover-underline-animation">Cerrar Sesión</span>
+              </a>
+            </div>
+          </header>
+
+          <main class="admin-content" style="flex-grow: 1">
+            <h2>Panel de Gestión de Proyectos</h2>
+
+            <div class="general-status" style="margin-bottom: 20px">
+              <p>
+                <strong>Estado General:</strong>
+                <span style="color: green">Activo</span> |
+                <strong>Miembros:</strong> <span id="member-count">[...]</span> |
+                <strong>Último Acceso:</strong> [Fecha]
+              </p>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 30px">
+              <button
+                type="button"
+                class="animated-button"
+                style="width: 250px"
+                onclick="location.href='usuario_cambiar_password.html'"
+              >
+                <span></span><span></span><span></span><span></span>
+                Cambiar Contraseña
+              </button>
+            </div>
+
+            <section id="project-grid-container" class="project-categories-grid">
+              
+              <div class="project-category-entry">
+                <h4>Inscripción Nueva Categoría</h4>
+                <p>Participa con tu proyecto en más categorías disponibles.</p>
+                <a
+                  href="/Modelos/Equipo/gestionar_proyecto_categorias.html"
+                >
+                  <button
+                    type="button"
+                    class="animated-button"
+                    style="width: auto; padding: 10px 20px"
+                  >
+                    <span></span><span></span><span></span><span></span>
+                    Ver Categorías
+                  </button>
+                </a>
+              </div>
+
+            </section>
+
+            <section class="general-links" style="margin-top: 30px">
+              <h3
+                style="
+                  color: #0056b3;
+                  border-bottom: 1px solid #d1d1d1;
+                  padding-bottom: 5px;
+                "
+              >
+                Constancias y Avisos
+              </h3>
+              <ul style="list-style: none; padding: 0">
+                <li>
+                  <button
+                    type="button"
+                    class="animated-button"
+                    style="width: 250px"
+                    onclick="location.href='/Modelos/Equipo/descargar-constancia.html'"
+                  >
+                    <span></span><span></span><span></span><span></span>
+                    Descargar Constancias
+                  </button>
+                  <span style="margin-left: 15px"
+                    >(Descarga [Habilitada/Deshabilitada])</span
+                  >
+                </li>
+              </ul>
+              <div class="notifications-section" style="margin-top: 20px">
+                <p>
+                  [Recordatorio: La fecha límite general de subida de archivos
+                  es el [Fecha].]
+                </p>
+              </div>
+            </section>
+          </main>
+
+          <footer
+  class="d-flex flex-wrap justify-content-center align-items-center py-3 mt-auto"
+  style="background-color: #f0f0f0; width: 100%; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;"
+>
+  <div class="d-flex align-items-center justify-content-center">
+    <img
+      src="/Recursos/UAA-LOGO.png"
+      alt="Logo UAA"
+      style="height: 80px; margin-right: 15px"
+      class="my-1"
+    />
+    <span class="mb-3 mb-md-0 text-dark">
+      &copy; 2025 Muestra Mercadológica UAA
+    </span>
+  </div>
+</footer>
+        </div>
+      </div>
+    </div>
+    
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        // 1. Obtener datos de la sesión
+        const userId = sessionStorage.getItem('userId');
+        const userName = sessionStorage.getItem('userName');
+        
+        const teamNameDisplay = document.getElementById("team-name-display");
+        const memberCountDisplay = document.getElementById("member-count");
+        const gridContainer = document.getElementById("project-grid-container");
+
+        if (userName) {
+          // Usamos el nombre del Representante por ahora, el controlador lo corregirá
+          teamNameDisplay.textContent = `Equipo: ${userName}`; 
+        }
+
+        if (!userId) {
+          teamNameDisplay.textContent = "Error: Inicia sesión de nuevo.";
+          return;
+        }
+
+        // 2. Llamar al API para obtener los datos del dashboard
+        fetch(`/api/equipo/dashboard?userId=${userId}`)
+          .then(response => {
+            if (!response.ok) throw new Error("No se pudieron cargar los datos del equipo.");
+            return response.json();
+          })
+          .then(data => {
+            // 3. Actualizar la UI
+            teamNameDisplay.textContent = `Equipo: ${data.nombreEquipo}`;
+            memberCountDisplay.textContent = data.cantidadMiembros;
+
+            // 4. Construir las tarjetas de proyectos
+            data.proyectosInscritos.forEach(proyecto => {
+              const card = document.createElement("div");
+              card.className = "project-category-entry azul";
+              
+              const estadoColor = proyecto.estado.toLowerCase() === 'completada' ? 'green' : '#4804d9';
+              // Usamos ?? para manejar el caso de que sea null
+              const archivoNombre = proyecto.rutaArchivoPDF ?? 'Ningún archivo subido';
+
+              card.innerHTML = `
+                <h4>${proyecto.nombreCategoria}</h4>
+                <h5>Proyecto: ${proyecto.nombreProyecto}</h5>
+                <p>
+                  <strong>Estado:</strong>
+                  <span style="color: ${estadoColor}">${proyecto.estado}</span>
+                </p>
+                <p>
+                  <strong>Documento Actual:</strong>
+                  <span id="current-pdf-cat${proyecto.idProyecto}">${archivoNombre}</span>
+                </p>
+                
+                <div class="form-group azul" style="margin-top: 15px">
+                  <label for="file-${proyecto.idProyecto}" class="file-input-label">Subir nuevo archivo PDF:</label>
+                  <input type="file" id="file-${proyecto.idProyecto}" name="file_${proyecto.idProyecto}" accept=".pdf" class="file-input" />
+                  <label for="file-${proyecto.idProyecto}" class="file-input-button">Seleccionar PDF</label>
+                </div>
+                
+                <div class="link-container" style="margin-top: 15px">
+                  <a href="/Modelos/Equipo/gestionar_proyecto_categorias.html?idProyecto=${proyecto.idProyecto}" class="menu-link">
+                    <span class="hover-underline-animation">Ver Detalles/Subir Archivos</span>
+                  </a>
+                  <a href="/Modelos/Equipo/ver-resultados.html?idProyecto=${proyecto.idProyecto}" class="menu-link" style="margin-left: 15px">
+                    <span class="hover-underline-animation">Ver Calificación</span>
+                  </a>
+                </div>
+              `;
+              
+              // Insertar la nueva tarjeta ANTES del botón "Inscripción Nueva Categoría"
+              gridContainer.insertBefore(card, gridContainer.lastElementChild);
+            });
+          })
+          .catch(error => {
+            console.error("Error al cargar dashboard:", error);
+            gridContainer.prepend(document.createTextNode("Error al cargar proyectos."));
+          });
+      });
+    </script>
+  </body>
+</html>

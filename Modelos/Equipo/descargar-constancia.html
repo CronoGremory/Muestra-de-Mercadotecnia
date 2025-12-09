@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Descargar Constancias - Muestra Mercadológica</title>
+    <link rel="stylesheet" href="/Estilos/styleflujos.css" />
+  </head>
+
+  <body>
+    <div class="wrapper">
+      <div class="contenido">
+        <div class="admin-container">
+          <header class="dashboard-header">
+            <h1>Muestra Mercadológica</h1>
+            <div class="user-info">
+              <span>Equipo: [Nombre del Equipo]</span>
+              <a href="../Backend/logout.php" class="menu-link">
+                <span class="hover-underline-animation">Cerrar Sesión</span>
+              </a>
+            </div>
+          </header>
+
+          <main class="admin-content" style="flex-grow: 1">
+            <h2>Constancias de Participación</h2>
+            <p>
+              Aquí puedes descargar las constancias individuales de
+              participación en la Muestra Mercadológica para cada integrante del
+              equipo.
+            </p>
+
+            <section class="members-list" style="margin-top: 30px">
+              <h3>Integrantes Registrados:</h3>
+              <ul class="list-unstyled" style="list-style: none; padding: 0">
+                <li
+                  style="
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    border-bottom: 1px solid #eee;
+                    padding: 10px 0;
+                  "
+                >
+                  [Nombre Completo Integrante 1]
+                  <a
+                    href="/generate-certificate?member_id=[ID_Integrante_1]"
+                    class="menu-link"
+                  >
+                    <span class="hover-underline-animation">
+                      Descargar Constancia
+                    </span>
+                  </a>
+                </li>
+                <li
+                  style="
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    border-bottom: 1px solid #eee;
+                    padding: 10px 0;
+                  "
+                >
+                  [Nombre Completo Integrante 2]
+                  <a
+                    href="/generate-certificate?member_id=[ID_Integrante_2]"
+                    class="menu-link"
+                  >
+                    <span class="hover-underline-animation">
+                      Descargar Constancia
+                    </span>
+                  </a>
+                </li>
+                <li
+                  style="
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    border-bottom: 1px solid #eee;
+                    padding: 10px 0;
+                  "
+                >
+                  [Nombre Completo Representante]
+                  <a
+                    href="/generate-certificate?member_id=[ID_Representante]"
+                    class="menu-link"
+                  >
+                    <span class="hover-underline-animation">
+                      Descargar Constancia
+                    </span>
+                  </a>
+                </li>
+              </ul>
+            </section>
+
+            <p class="info-note">
+              Cada constancia incluye: Nombre del proyecto/integrante, mención
+              de participación, fecha y lugar del evento.
+            </p>
+
+            <div class="links" style="margin-top: 30px; padding-top: 20px">
+              <a href="dashboard_equipo.html" class="menu-link">
+                <span class="hover-underline-animation"
+                  >&laquo; Volver al Panel de Control</span
+                >
+              </a>
+            </div>
+          </main>
+
+ <footer
+  class="d-flex flex-wrap justify-content-center align-items-center py-3 mt-auto"
+  style="background-color: #f0f0f0; width: 100%; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;"
+>
+  <div class="d-flex align-items-center justify-content-center">
+    <img
+      src="/Recursos/UAA-LOGO.png"
+      alt="Logo UAA"
+      style="height: 80px; margin-right: 15px"
+      class="my-1"
+    />
+    <span class="mb-3 mb-md-0 text-dark">
+      &copy; 2025 Muestra Mercadológica UAA
+    </span>
+  </div>
+</footer>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

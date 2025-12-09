@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Galería - Administración</title>
+    <link rel="stylesheet" href="/Estilos/styleflujos.css">
+</head>
+<body>
+    <div class="wrapper">
+        <div class="contenido">
+            <div class="admin-container">
+                <header class="dashboard-header">
+                    <h1>Panel de Administración</h1>
+                    <div class="user-info">
+                        <span id="admin-name-display">Admin: ...</span>
+                        <a href="/Modelos/login.html" class="menu-link">Cerrar Sesión</a>
+                    </div>
+                </header>
+                <div class="admin-main">
+                   <aside class="admin-nav">
+              <h3>Menú Principal</h3>
+              <ul>
+                <li>
+                  <a href="admin_overview.html" class="menu-link">
+                    <span class="hover-underline-animation">Resumen General</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_users.html" class="menu-link">
+                    <span class="hover-underline-animation">Gestionar Usuarios</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_projects.html" class="menu-link">
+                    <span class="hover-underline-animation">Gestionar Proyectos</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_assignments.html" class="menu-link">
+                    <span class="hover-underline-animation">Asignar Evaluadores</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_progress.html" class="menu-link">
+                    <span class="hover-underline-animation">Monitor de Progreso</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_results.html" class="menu-link">
+                    <span class="hover-underline-animation">Calcular/Ver Resultados</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_reports.html" class="menu-link">
+                    <span class="hover-underline-animation">Generar Reportes</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_certificates.html" class="menu-link">
+                    <span class="hover-underline-animation">Gestión Constancias</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_gallery.html" class="menu-link">
+                    <span class="hover-underline-animation">Gestionar Galería</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_settings.html" class="menu-link">
+                    <span class="hover-underline-animation">Configuración Evento</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_whatsapp.html" class="menu-link">
+                    <span class="hover-underline-animation" style="color: #25D366;">Bot WhatsApp</span>
+                  </a>
+                </li>
+              </ul>
+            </aside>
+                    <main class="admin-content">
+                        <section class="admin-section">
+                            <h2>Gestión de Galería</h2>
+                            
+                            <form id="uploadGalleryForm" style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                                <h3>Subir Nuevo Elemento</h3>
+                                <div class="form-group">
+                                    <label>Imagen:</label>
+                                    <input type="file" name="archivo" accept="image/*" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Descripción:</label>
+                                    <input type="text" name="descripcion" placeholder="Ej. Ganadores 2024" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Tipo:</label>
+                                    <select name="tipo">
+                                        <option value="imagen">Imagen</option>
+                                        <option value="video">Video</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="animated-button">Subir a Galería</button>
+                            </form>
+
+                            <h3>Elementos en Galería</h3>
+                            <table id="galleryTable">
+                                <thead>
+                                    <tr>
+                                        <th>Vista Previa</th>
+                                        <th>Descripción</th>
+                                        <th>Tipo</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="galleryBody">
+                                    <tr><td colspan="4">Cargando...</td></tr>
+                                </tbody>
+                            </table>
+                        </section>
+                    </main>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            loadGallery();
+        });
+
+        function loadGallery() {
+            fetch('/api/admin/gallery')
+            .then(r => r.json())
+            .then(data => {
+                const tbody = document.getElementById('galleryBody');
+                tbody.innerHTML = '';
+                if (data.length === 0) tbody.innerHTML = '<tr><td colspan="4">Galería vacía.</td></tr>';
+                
+                data.forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><img src="${item.ruta}" style="height: 50px; border-radius: 4px;"></td>
+                        <td>${item.descripcion}</td>
+                        <td>${item.tipo}</td>
+                        <td><button class="btn-secondary" onclick="deleteItem(${item.id})" style="color: red;">Eliminar</button></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            });
+        }
+
+        document.getElementById('uploadGalleryForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            
+            try {
+                const res = await fetch('/api/admin/upload-gallery', { method: 'POST', body: formData });
+                if(res.ok) {
+                    alert("Subido correctamente");
+                    e.target.reset();
+                    loadGallery();
+                } else {
+                    alert("Error al subir");
+                }
+            } catch(err) { alert("Error de conexión"); }
+        });
+
+        window.deleteItem = async (id) => {
+            if(!confirm("¿Eliminar de la galería?")) return;
+            await fetch(`/api/admin/delete-gallery/${id}`, { method: 'DELETE' });
+            loadGallery();
+        };
+    </script>
+</body>
+</html>

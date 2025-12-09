@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro de WhatsApp</title>
+    <link rel="stylesheet" href="/Estilos/styleflujos.css">
+    
+    <style>
+        .contenido-card {
+            background-color: #ffffff; border-radius: 15px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 40px; width: 100%; max-width: 450px; 
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+            margin: 50px auto; 
+        }
+        h2 { color: #003153; margin: 10px 0; }
+        p.descripcion { color: #666; margin-bottom: 30px; }
+    </style>
+</head>
+<body>
+
+    <div class="wrapper">
+        <div class="contenido-card">
+            
+            <h2 style="font-size: 2em;">🔔</h2>
+            <h2>Activar Recordatorios</h2>
+            <p class="descripcion">Ingresa tu número de celular.</p>
+
+            <form action="/api/whatsapp/activar" method="GET" style="width: 100%;">
+                
+                <div class="form-group">
+                    <label for="telefono" style="text-align: left;">Número de WhatsApp:</label>
+                    <input type="text" id="telefono" name="telefono" placeholder="Ej: 521..." required autocomplete="off">
+                </div>
+
+                <div style="margin-top: 25px;">
+                    <button type="submit" class="animated-button" style="width: 100%;">
+                        Activar Alertas
+                    </button>
+                </div>
+
+                <div style="margin-top: 25px;">
+                    <a href="/Modelos/registro.html" style="width: 100%; display: block;">
+                        <button type="button" class="animated-button" style="width: 100%;">Regresar</button>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

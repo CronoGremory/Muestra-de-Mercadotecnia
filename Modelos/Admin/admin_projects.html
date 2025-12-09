@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestionar Proyectos - Administración Muestra Mercadológica</title>
+    <link rel="stylesheet" href="/Estilos/styleflujos.css">
+</head>
+<body>
+    <div class="wrapper">
+        <div class="contenido">
+            <div class="admin-container">
+                <header class="dashboard-header">
+                    <h1>Panel de Administración</h1>
+                    <div class="user-info">
+                        <span id="admin-name-display">Admin: [Cargando...]</span>
+                            <a href="/Modelos/login.html" class="menu-link">
+                                <span class="hover-underline-animation">Cerrar Sesión</span>
+                            </a>
+                    </div>
+                </header>
+                <div class="admin-main">
+                <aside class="admin-nav">
+              <h3>Menú Principal</h3>
+              <ul>
+                <li>
+                  <a href="admin_overview.html" class="menu-link">
+                    <span class="hover-underline-animation">Resumen General</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_users.html" class="menu-link">
+                    <span class="hover-underline-animation">Gestionar Usuarios</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_projects.html" class="menu-link">
+                    <span class="hover-underline-animation">Gestionar Proyectos</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_assignments.html" class="menu-link">
+                    <span class="hover-underline-animation">Asignar Evaluadores</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_progress.html" class="menu-link">
+                    <span class="hover-underline-animation">Monitor de Progreso</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_results.html" class="menu-link">
+                    <span class="hover-underline-animation">Calcular/Ver Resultados</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_reports.html" class="menu-link">
+                    <span class="hover-underline-animation">Generar Reportes</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_certificates.html" class="menu-link">
+                    <span class="hover-underline-animation">Gestión Constancias</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_gallery.html" class="menu-link">
+                    <span class="hover-underline-animation">Gestionar Galería</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_settings.html" class="menu-link">
+                    <span class="hover-underline-animation">Configuración Evento</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_whatsapp.html" class="menu-link">
+                    <span class="hover-underline-animation" style="color: #25D366;">Bot WhatsApp</span>
+                  </a>
+                </li>
+              </ul>
+            </aside>
+                    <main class="admin-content" id="admin-main-content">
+                        <section id="projects" class="admin-section">
+                            <h3>Gestionar Proyectos</h3>
+                            
+                            <div class="form-group azul" style="margin-bottom: 20px;">
+                                <label for="project-filter-status" style="display:inline-block; margin-right:5px;">Filtrar por Estado:</label>
+                                <div class="select-wrapper" style="display:inline-block; width: 200px;">
+                                    <select id="project-filter-status" class="search-select" onchange="filterProjects()">
+                                        <option value="all">Todos</option>
+                                        <option value="Pendiente">Pendiente</option>
+                                        <option value="Subido">Subido</option>
+                                        <option value="En Evaluación">En Evaluación</option>
+                                        <option value="Evaluado">Evaluado</option>
+                                    </select>
+                                </div>
+                                <button class="animated-button" onclick="loadProjects()"><span></span><span></span><span></span><span></span>Recargar</button>
+                            </div>
+
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nombre del Proyecto</th>
+                                        <th>Equipo</th>
+                                        <th>Categoría</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="projectsTableBody">
+                                    <tr><td colspan="6" style="text-align:center;">Cargando proyectos...</td></tr>
+                                </tbody>
+                            </table>
+                        </section>
+                    </main>
+                </div>
+                  <footer
+  class="d-flex flex-wrap justify-content-center align-items-center py-3 mt-auto"
+  style="background-color: #f0f0f0; width: 100%; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;"
+>
+  <div class="d-flex align-items-center justify-content-center">
+    <img
+      src="/Recursos/UAA-LOGO.png"
+      alt="Logo UAA"
+      style="height: 80px; margin-right: 15px"
+      class="my-1"
+    />
+    <span class="mb-3 mb-md-0 text-dark">
+      &copy; 2025 Muestra Mercadológica UAA
+    </span>
+  </div>
+</footer>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const userName = sessionStorage.getItem('userName');
+            if(userName) document.getElementById('admin-name-display').textContent = `Admin: ${userName}`;
+            
+            loadProjects();
+        });
+
+        let allProjects = []; // Guardamos los proyectos para filtrar sin recargar
+
+        function loadProjects() {
+            fetch('/api/admin/projects')
+            .then(res => res.json())
+            .then(projects => {
+                allProjects = projects;
+                renderTable(projects);
+            })
+            .catch(err => console.error("Error cargando proyectos:", err));
+        }
+
+        function renderTable(projects) {
+            const tbody = document.getElementById('projectsTableBody');
+            tbody.innerHTML = '';
+
+            if(projects.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No hay proyectos registrados.</td></tr>';
+                return;
+            }
+
+            projects.forEach(p => {
+                // Lógica para el botón de archivo
+                let archivoLink = '<span style="color:#999;">Sin archivo</span>';
+                if (p.rutaArchivo) {
+                    archivoLink = `<a href="${p.rutaArchivo}" target="_blank" class="menu-link" style="color: blue;">Ver PDF</a>`;
+                }
+
+                // Colores de estado
+                let colorEstado = 'black';
+                if(p.estado === 'Pendiente') colorEstado = '#d97604';
+                if(p.estado === 'Subido') colorEstado = '#4804d9';
+                if(p.estado === 'Evaluado') colorEstado = 'green';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${p.idProyecto}</td>
+                    <td>${p.nombreProyecto}</td>
+                    <td>${p.nombreEquipo}</td>
+                    <td>${p.nombreCategoria}</td>
+                    <td><strong style="color:${colorEstado}">${p.estado}</strong></td>
+                    <td>
+                        ${archivoLink}
+                        <br>
+                        <button class="btn-secondary" onclick="changeStatus(${p.idProyecto})" style="margin-top:5px; font-size:0.8em;">Cambiar Estado</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterProjects() {
+            const status = document.getElementById('project-filter-status').value;
+            if (status === 'all') {
+                renderTable(allProjects);
+            } else {
+                const filtered = allProjects.filter(p => p.estado === status);
+                renderTable(filtered);
+            }
+        }
+
+        // Función para cambiar el estado (Simple prompt por ahora)
+        async function changeStatus(idProyecto) {
+            const estados = ['Pendiente', 'Subido', 'En Evaluación', 'Evaluado'];
+            const nuevoEstado = prompt(`Escribe el nuevo estado para el proyecto ID ${idProyecto}:\n(${estados.join(', ')})`);
+            
+            if (!nuevoEstado || !estados.includes(nuevoEstado)) {
+                if(nuevoEstado) alert("Estado no válido. Usa uno de la lista.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('idProyecto', idProyecto);
+            formData.append('nuevoEstado', nuevoEstado);
+
+            try {
+                const res = await fetch('/api/admin/update-project-status', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    alert(data.message);
+                    loadProjects(); // Recargar la tabla
+                } else {
+                    alert("Error: " + data.message);
+                }
+            } catch (err) {
+                alert("Error de conexión.");
+            }
+        }
+    </script>
+</body>
+</html>

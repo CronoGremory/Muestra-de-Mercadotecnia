@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Evaluar Proyecto - Muestra Mercadológica</title>
+    <link rel="stylesheet" href="/Estilos/styleflujos.css" />
+    
+    <style>
+      .radio-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 10px;
+        border-left: 3px solid #f0f0f0;
+        padding-left: 10px;
+      }
+      .radio-group label {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-weight: normal;
+        font-size: 0.95em;
+      }
+      .criteria-group label {
+        font-weight: bold;
+        color: #003153;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="wrapper">
+      <div class="contenido">
+        <div class="container project-evaluation-container admin-container">
+          <header class="dashboard-header">
+            <h1>Muestra Mercadológica</h1>
+            <div class="user-info">
+              <span id="user-name-display">Evaluador: [Cargando...]</span>
+              <a href="/Modelos/login.html" class="menu-link">
+                <span class="hover-underline-animation">Cerrar Sesión</span>
+              </a>
+            </div>
+          </header>
+
+          <main class="admin-content">
+            <h2>Evaluar Proyecto: <span id="nombre-proyecto">[Cargando...]</span></h2>
+            <p style="margin-bottom: 25px">
+              <strong>Categoría:</strong> <span id="nombre-categoria">[Cargando...]</span> |
+              <strong>Equipo:</strong> <span id="nombre-equipo">[Cargando...]</span>
+            </p>
+
+            <form id="evaluationForm">
+              
+              <div id="criteria-container">
+                <p style="text-align: center; font-weight: bold;">Cargando rúbrica de evaluación...</p>
+              </div>
+
+              <fieldset class="criteria-fieldset">
+                <legend>Comentarios Generales</legend>
+                <div class="form-group">
+                  <label for="general_comments">
+                    Comentarios y Feedback Adicional:
+                  </label>
+                  <textarea
+                    id="general_comments"
+                    name="general_comments"
+                    rows="5"
+                    placeholder="Escribe aquí tu feedback general para el equipo."
+                  ></textarea>
+                </div>
+              </fieldset>
+
+              <div id="form-message" style="margin-top: 15px; font-weight: bold; text-align: center;"></div>
+
+              <div
+                class="form-actions"
+                style="text-align: right; margin-top: 30px"
+              >
+                <a
+                  href="/Modelos/Evaluador/dashboard_evaluador.html"
+                  class="menu-link"
+                  style="margin-right: 15px"
+                >
+                  <span class="hover-underline-animation">
+                    Cancelar / Volver al Dashboard
+                  </span>
+                </a>
+                
+                <button
+                  type="submit"
+                  id="submitButton"
+                  class="animated-button"
+                  style="width: 180px; padding: 10px; font-size: 15px"
+                >
+                  <span></span><span></span><span></span><span></span>
+                  Enviar Evaluación
+                </button>
+              </div>
+            </form>
+          </main>
+
+         <footer
+  class="d-flex flex-wrap justify-content-center align-items-center py-3 mt-auto"
+  style="background-color: #f0f0f0; width: 100%; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;"
+>
+  <div class="d-flex align-items-center justify-content-center">
+    <img
+      src="/Recursos/UAA-LOGO.png"
+      alt="Logo UAA"
+      style="height: 80px; margin-right: 15px"
+      class="my-1"
+    />
+    <span class="mb-3 mb-md-0 text-dark">
+      &copy; 2025 Muestra Mercadológica UAA
+    </span>
+  </div>
+</footer>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        
+        // --- 1. OBTENER DATOS DE SESIÓN Y URL ---
+        const userName = sessionStorage.getItem('userName');
+        if (userName) {
+          document.getElementById("user-name-display").textContent = `Evaluador: ${userName}`;
+        }
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const idAsignacion = urlParams.get('idAsignacion');
+
+        const criteriaContainer = document.getElementById("criteria-container");
+        const form = document.getElementById("evaluationForm");
+        const messageDiv = document.getElementById("form-message");
+        const submitButton = document.getElementById("submitButton");
+        
+        // Elementos del título
+        const nombreProyectoEl = document.getElementById("nombre-proyecto");
+        const nombreCategoriaEl = document.getElementById("nombre-categoria");
+        const nombreEquipoEl = document.getElementById("nombre-equipo");
+
+
+        if (!idAsignacion) {
+          criteriaContainer.innerHTML = "<p style='color: red;'>Error: No se encontró un ID de asignación en la URL.</p>";
+          return;
+        }
+
+        // --- 2. LLAMAR AL BACKEND PARA OBTENER LOS CRITERIOS ---
+        fetch(`/api/evaluacion/criterios?idAsignacion=${idAsignacion}`)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error("No se pudo cargar la rúbrica. La asignación no existe o ya fue completada.");
+            }
+            return response.json();
+          })
+          .then(criterios => {
+            criteriaContainer.innerHTML = ""; // Limpiamos "Cargando..."
+            
+            // --- 3. CONSTRUIR EL HTML DINÁMICAMENTE ---
+            let currentSection = "";
+            let fieldset = null;
+
+            criterios.forEach(criterio => {
+              // Agrupamos por sección (ej. "Portada:", "Resumen Ejecutivo:")
+              const sectionName = criterio.nombreCriterio.split(":")[0];
+              const questionText = criterio.nombreCriterio.split(":").slice(1).join(":").trim();
+
+              // Si es una nueva sección, creamos un nuevo <fieldset>
+              if (sectionName !== currentSection) {
+                currentSection = sectionName;
+                fieldset = document.createElement("fieldset");
+                fieldset.className = "criteria-fieldset";
+                const legend = document.createElement("legend");
+                legend.textContent = currentSection;
+                fieldset.appendChild(legend);
+                criteriaContainer.appendChild(fieldset);
+              }
+
+              const group = document.createElement("div");
+              group.className = "criteria-group";
+              group.innerHTML = `<label>${questionText}</label>`;
+
+              // Creamos los inputs de radio
+              const radioContainer = document.createElement("div");
+              radioContainer.className = "radio-group";
+
+              // Usamos la info de 'tipoPregunta' que nos dio el C#
+              if (criterio.tipoPregunta === "Escala") {
+                // Dibujamos escala 0-5
+                radioContainer.innerHTML = `
+                  <label><input type="radio" name="criterio_${criterio.idCriterio}" value="5" required> 5 (Supera)</label>
+                  <label><input type="radio" name="criterio_${criterio.idCriterio}" value="4"> 4 (Suficiente)</label>
+                  <label><input type="radio" name="criterio_${criterio.idCriterio}" value="3"> 3 (Regular)</label>
+                  <label><input type="radio" name="criterio_${criterio.idCriterio}" value="2"> 2 (Pobre)</label>
+                  <label><input type="radio" name="criterio_${criterio.idCriterio}" value="1"> 1 (Muy pobre)</label>
+                  <label><input type="radio" name="criterio_${criterio.idCriterio}" value="0"> 0 (No aborda)</label>
+                `;
+              } else {
+                // Dibujamos Sí/No (1/0)
+                radioContainer.innerHTML = `
+                  <label><input type="radio" name="criterio_${criterio.idCriterio}" value="1" required> 1 (Sí)</label>
+                  <label><input type="radio" name="criterio_${criterio.idCriterio}" value="0"> 0 (No)</label>
+                `;
+              }
+              group.appendChild(radioContainer);
+              fieldset.appendChild(group);
+            });
+          })
+          .catch(error => {
+            criteriaContainer.innerHTML = `<p style='color: red;'>${error.message}</p>`;
+          });
+
+        // --- 4. MANEJAR EL ENVÍO DEL FORMULARIO ---
+        form.addEventListener("submit", (event) => {
+          event.preventDefault(); // Evitamos que la página se recargue
+          submitButton.disabled = true;
+          messageDiv.textContent = "Guardando...";
+          messageDiv.style.color = "blue";
+
+          const formData = new FormData(form);
+          const respuestas = [];
+
+          // Recolectamos todas las respuestas de los inputs de radio
+          for (let [key, value] of formData.entries()) {
+            if (key.startsWith("criterio_")) {
+              respuestas.push({
+                IdCriterio: parseInt(key.split("_")[1]),
+                PuntajeObtenido: parseFloat(value),
+                Comentarios: "" // Dejamos comentarios vacíos por ahora
+              });
+            }
+          }
+          
+          // Añadimos el comentario general a la primera respuesta
+          const generalComments = document.getElementById("general_comments").value;
+          if (respuestas.length > 0) {
+              if(generalComments.length > 0 && respuestas[0].Comentarios === "") {
+                 respuestas[0].Comentarios = generalComments;
+              }
+          }
+
+          // Creamos el objeto final para enviar
+          const submitData = {
+            IdAsignacion: parseInt(idAsignacion),
+            Respuestas: respuestas
+          };
+
+          // --- 5. LLAMAR AL BACKEND PARA GUARDAR ---
+          fetch("/api/evaluacion/submit", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(submitData)
+          })
+          .then(response => response.json().then(data => ({ ok: response.ok, body: data })))
+          .then(({ ok, body }) => { 
+            if (ok) {
+              messageDiv.textContent = body.message;
+              messageDiv.style.color = "green";
+              // Redirigir al dashboard después de 2 segundos
+              setTimeout(() => {
+                window.location.href = "/Modelos/Evaluador/dashboard_evaluador.html";
+              }, 2000);
+            } else {
+              throw new Error(body.message);
+            }
+          })
+          .catch(error => {
+            messageDiv.textContent = `Error: ${error.message}`;
+            messageDiv.style.color = "red";
+            submitButton.disabled = false;
+          });
+        });
+
+      });
+    </script>
+  </body>
+</html>
+```

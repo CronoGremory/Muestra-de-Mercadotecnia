@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generar Reportes - Administración</title>
+    <link rel="stylesheet" href="/Estilos/styleflujos.css">
+</head>
+<body>
+    <div class="wrapper">
+        <div class="contenido">
+            <div class="admin-container">
+                <header class="dashboard-header">
+                    <h1>Panel de Administración</h1>
+                    <div class="user-info">
+                        <span id="admin-name-display">Admin: ...</span>
+                        <a href="/Modelos/login.html" class="menu-link">Cerrar Sesión</a>
+                    </div>
+                </header>
+                <div class="admin-main">
+                   <aside class="admin-nav">
+              <h3>Menú Principal</h3>
+              <ul>
+                <li>
+                  <a href="admin_overview.html" class="menu-link">
+                    <span class="hover-underline-animation">Resumen General</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_users.html" class="menu-link">
+                    <span class="hover-underline-animation">Gestionar Usuarios</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_projects.html" class="menu-link">
+                    <span class="hover-underline-animation">Gestionar Proyectos</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_assignments.html" class="menu-link">
+                    <span class="hover-underline-animation">Asignar Evaluadores</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_progress.html" class="menu-link">
+                    <span class="hover-underline-animation">Monitor de Progreso</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_results.html" class="menu-link">
+                    <span class="hover-underline-animation">Calcular/Ver Resultados</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_reports.html" class="menu-link">
+                    <span class="hover-underline-animation">Generar Reportes</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_certificates.html" class="menu-link">
+                    <span class="hover-underline-animation">Gestión Constancias</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_gallery.html" class="menu-link">
+                    <span class="hover-underline-animation">Gestionar Galería</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_settings.html" class="menu-link">
+                    <span class="hover-underline-animation">Configuración Evento</span>
+                  </a>
+                </li>
+
+                <li>
+                  <a href="admin_whatsapp.html" class="menu-link">
+                    <span class="hover-underline-animation" style="color: #25D366;">Bot WhatsApp</span>
+                  </a>
+                </li>
+              </ul>
+            </aside>
+                    <main class="admin-content">
+                        <section class="admin-section">
+                            <h2>Generación de Reportes</h2>
+                            
+                            <div class="report-box" style="margin-top: 30px; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                                <h4>Reporte de Equipos Registrados</h4>
+                                <p>Lista de equipos, representantes y correos.</p>
+                                <button class="animated-button" style="background-color: #28a745;" onclick="downloadReport('teams')">
+                                    <span></span><span></span><span></span><span></span>
+                                    Descargar Excel (CSV)
+                                </button>
+                            </div>
+
+                            <div class="report-box" style="margin-top: 30px; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                                <h4>Reporte de Resultados Finales</h4>
+                                <p>Ranking final con promedios y ganadores.</p>
+                                <button class="animated-button" style="background-color: #28a745;" onclick="downloadReport('results')">
+                                    <span></span><span></span><span></span><span></span>
+                                    Descargar Excel (CSV)
+                                </button>
+                            </div>
+                        </section>
+                    </main>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const userName = sessionStorage.getItem('userName');
+            if(userName) document.getElementById('admin-name-display').textContent = `Admin: ${userName}`;
+        });
+
+        function downloadReport(type) {
+            // Simplemente redirigimos al endpoint, el navegador manejará la descarga
+            if(type === 'teams') window.location.href = '/api/admin/report-teams-csv';
+            if(type === 'results') window.location.href = '/api/admin/report-results-csv';
+        }
+    </script>
+</body>
+</html>
