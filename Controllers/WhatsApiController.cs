@@ -33,7 +33,7 @@ namespace Muestra.Controllers
         private static int ultimoAvisoEnviado = -999;
         private static readonly SemaphoreSlim _browserLock = new SemaphoreSlim(1, 1);
 
-        // ⚠️ TUS CREDENCIALES (MANTENEMOS LAS QUE FUNCIONAN)
+        // ⚠️ TUS CREDENCIALES (No las cambies, ya vimos que estas funcionan)
         private const string CADENA_CONEXION = "User Id=MUESTRA_ADMIN;Password=Muestra.2025;Data Source=localhost:1521/XEPDB1;";
 
         // ============================================================
@@ -148,7 +148,7 @@ namespace Muestra.Controllers
             foreach (var num in numeros)
             {
                 bool exito = EnviarMensajeSelenium(num, mensaje);
-                // Si exito es false, es porque el número estaba mal, pero el programa NO TRONÓ
+                // Si exito es false, significa que el número estaba mal, pero el programa NO TRONÓ.
                 string estado = exito ? "Enviado ✅" : "Falló ❌ (Número inválido)";
                 await _hubContext.Clients.All.SendAsync("RecibirProgreso", num, estado);
                 if (exito) enviados++;
@@ -184,13 +184,15 @@ namespace Muestra.Controllers
 
                 var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(15));
                 
-                // 1. BLINDAJE: Si ocurre un error buscando la caja, lo atrapamos
+                // 1. ESTA LÍNEA ES MÁGICA: Le dice a Selenium que ignore el error si no encuentra el elemento inmediatamente
+                wait.IgnoreExceptionTypes(typeof(NoSuchElementException));
+
                 try 
                 {
-                    // Buscamos la caja de texto
+                    // Intentamos encontrar la caja de texto
                     var cajaTexto = wait.Until(d => d.FindElement(By.CssSelector("div[contenteditable='true']")));
                     
-                    // Si llegamos aquí, SÍ EXISTE el chat
+                    // Si pasamos esta línea, significa que SÍ cargó el chat
                     Thread.Sleep(1000);
                     cajaTexto.SendKeys(Keys.Enter);
                     Thread.Sleep(2000);
@@ -198,19 +200,19 @@ namespace Muestra.Controllers
                 }
                 catch (WebDriverTimeoutException)
                 {
-                    // Si pasaron 15 segundos y no apareció la caja, el número está mal.
-                    // Retornamos FALSE para que el programa siga, NO DEJAMOS QUE TRUENE.
+                    // Si se acaba el tiempo (15 segs) y no apareció la caja, 
+                    // significa que el número es inválido. Retornamos FALSE limpiamente.
                     return false; 
                 }
                 catch (NoSuchElementException)
                 {
-                    // Atrapamos el error específico que te salió en la imagen
-                    return false;
+                     // Si explota buscando el elemento, lo atrapamos aquí
+                     return false;
                 }
             }
             catch 
             {
-                // Cualquier otro error del navegador, retornamos false
+                // Cualquier otro error raro, retornamos false en lugar de cerrar el programa
                 return false; 
             }
             finally 
