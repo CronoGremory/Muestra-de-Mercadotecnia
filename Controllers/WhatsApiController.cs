@@ -33,7 +33,7 @@ namespace Muestra.Controllers
         private static int ultimoAvisoEnviado = -999;
         private static readonly SemaphoreSlim _browserLock = new SemaphoreSlim(1, 1);
 
-        // ⚠️ TUS CREDENCIALES CORRECTAS (MUESTRA_ADMIN + XEPDB1)
+        // ⚠️ TUS CREDENCIALES (No las cambies, ya vimos que estas funcionan)
         private const string CADENA_CONEXION = "User Id=MUESTRA_ADMIN;Password=Muestra.2025;Data Source=localhost:1521/XEPDB1;";
 
         // ============================================================
@@ -148,6 +148,7 @@ namespace Muestra.Controllers
             foreach (var num in numeros)
             {
                 bool exito = EnviarMensajeSelenium(num, mensaje);
+                // Si exito es false, significa que el número estaba mal, pero el programa NO TRONÓ.
                 string estado = exito ? "Enviado ✅" : "Falló ❌ (Número inválido)";
                 await _hubContext.Clients.All.SendAsync("RecibirProgreso", num, estado);
                 if (exito) enviados++;
@@ -171,7 +172,7 @@ namespace Muestra.Controllers
         }
 
         // ============================================================
-        // 🛡️ MÉTODO DE ENVÍO BLINDADO (AQUÍ ESTABA EL ERROR)
+        // 🛡️ AQUÍ ESTÁ EL ARREGLO DEL ERROR "NoSuchElementException"
         // ============================================================
         private bool EnviarMensajeSelenium(string tel, string msj)
         {
@@ -183,30 +184,30 @@ namespace Muestra.Controllers
 
                 var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(15));
                 
-                // --- BLOQUE DE SEGURIDAD ---
-                // Aquí atrapamos el error "NoSuchElementException"
+                // 1. ESTA LÍNEA ES MÁGICA: Le dice a Selenium que ignore el error si no encuentra el elemento inmediatamente
+                wait.IgnoreExceptionTypes(typeof(NoSuchElementException));
+
                 try 
                 {
                     // Intentamos encontrar la caja de texto
                     var cajaTexto = wait.Until(d => d.FindElement(By.CssSelector("div[contenteditable='true']")));
                     
-                    // Si llegamos aquí, SÍ EXISTE el chat
+                    // Si pasamos esta línea, significa que SÍ cargó el chat
                     Thread.Sleep(1000);
                     cajaTexto.SendKeys(Keys.Enter);
                     Thread.Sleep(2000);
                     return true;
                 }
-                catch (Exception)
+                catch (WebDriverTimeoutException)
                 {
-                    // Si entra aquí, es porque NO encontró la caja de texto.
-                    // Significa que el número es inválido.
-                    // Retornamos FALSE para que el programa NO TRUENE.
+                    // Si se acaba el tiempo (15 segs) y no apareció la caja, 
+                    // significa que el número es inválido. Retornamos FALSE limpiamente.
                     return false; 
                 }
             }
             catch 
             {
-                // Error general del navegador
+                // Cualquier otro error raro, retornamos false en lugar de cerrar el programa
                 return false; 
             }
             finally 
