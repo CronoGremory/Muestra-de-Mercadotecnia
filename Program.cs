@@ -11,8 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR(); 
 
-// ⚠️ CONEXIÓN DIRECTA (HARDCODED) PARA EL LOGIN
-// Si falla XEPDB1, cambiaremos esto a XE más abajo
+// ⚠️ CONEXIÓN DIRECTA CORREGIDA A 'XE' (Para el Login)
 string connectionString = "User Id=SYSTEM;Password=Muestra.2025;Data Source=localhost:1521/XE;";
 builder.Services.AddTransient<OracleConnection>(_ => new OracleConnection(connectionString));
 

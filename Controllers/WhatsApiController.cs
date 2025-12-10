@@ -33,9 +33,8 @@ namespace Muestra.Controllers
         private static int ultimoAvisoEnviado = -999;
         private static readonly SemaphoreSlim _browserLock = new SemaphoreSlim(1, 1);
 
-        // ⚠️ TU CADENA DE CONEXIÓN MAESTRA (Con tus datos reales)
-        // Si tu usuario no es SYSTEM, cámbialo aquí.
-        private const string CADENA_CONEXION = "User Id=SYSTEM;Password=Muestra.2025;Data Source=localhost:1521/XEPDB1;";
+        // ⚠️ CONEXIÓN DIRECTA CORREGIDA A 'XE' (Para el Bot)
+        private const string CADENA_CONEXION = "User Id=SYSTEM;Password=Muestra.2025;Data Source=localhost:1521/XE;";
 
         // ============================================================
         // 1. INICIAR BOT (ABRIR CHROME)
@@ -88,7 +87,6 @@ namespace Muestra.Controllers
             }
             catch (Exception ex) 
             {
-                // Si falla, mostramos el error exacto
                 return BadRequest("Error Oracle: " + ex.Message); 
             }
         }
@@ -135,14 +133,12 @@ namespace Muestra.Controllers
             DateTime hoy = DateTime.Today;
             int diasRestantes = (int)(fechaEntrega - hoy).TotalDays;
 
-            // Anti-Spam
             if (diasRestantes == ultimoAvisoEnviado)
             {
                 await _hubContext.Clients.All.SendAsync("RecibirLog", "⚠️ SPAM DETECTADO: Ya enviaste mensajes hoy.");
                 return Ok(new { estado = "SPAM DETECTADO" });
             }
 
-            // Obtenemos los números llamando al método interno
             var actionResult = VerNumeros() as OkObjectResult;
             if (actionResult?.Value == null) return BadRequest(new { estado = "Error al leer BD (Nulo)" });
 
@@ -159,10 +155,8 @@ namespace Muestra.Controllers
             foreach (var num in numeros)
             {
                 bool exito = EnviarMensajeSelenium(num, mensaje);
-                
                 string estado = exito ? "Enviado ✅" : "Falló ❌ (Inválido o Error)";
                 await _hubContext.Clients.All.SendAsync("RecibirProgreso", num, estado);
-                
                 if (exito) enviados++;
             }
 
@@ -188,48 +182,28 @@ namespace Muestra.Controllers
         // ============================================================
         private bool EnviarMensajeSelenium(string tel, string msj)
         {
-            _browserLock.Wait(); // Semáforo para orden
+            _browserLock.Wait(); 
             try
             {
-                // 1. Navegar al chat
                 string url = $"https://web.whatsapp.com/send?phone={tel}&text={Uri.EscapeDataString(msj)}";
                 _driver!.Navigate().GoToUrl(url);
 
-                // 2. Esperar a que cargue el CHAT (No el botón, sino la caja de texto)
-                // Esto nos asegura que la página cargó bien.
                 var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(15));
-                
                 try 
                 {
-                    // Buscamos la caja de texto primero para asegurar carga
-                    // (div[contenteditable='true'] es donde escribes en WA Web)
                     var cajaTexto = wait.Until(d => d.FindElement(By.CssSelector("div[contenteditable='true']")));
-                    Thread.Sleep(1000); // Pausa para estabilidad
-
-                    // 3. ESTRATEGIA PRINCIPAL: PRESIONAR ENTER
-                    // En lugar de buscar el botón y arriesgarnos al error 'NoSuchElement',
-                    // simplemente le damos ENTER al teclado.
+                    Thread.Sleep(1000); 
                     cajaTexto.SendKeys(Keys.Enter);
-
-                    Thread.Sleep(2000); // Esperar a que salga
+                    Thread.Sleep(2000); 
                     return true;
                 }
                 catch (Exception)
                 {
-                    // Si falla encontrando la caja de texto, es porque el número no tiene WhatsApp
-                    // y salió el popup de "El número no es válido".
                     return false; 
                 }
             }
-            catch 
-            {
-                // Cualquier otro error del navegador
-                return false; 
-            }
-            finally 
-            { 
-                _browserLock.Release(); // Liberar turno siempre
-            }
+            catch { return false; }
+            finally { _browserLock.Release(); }
         }
     }
 }
