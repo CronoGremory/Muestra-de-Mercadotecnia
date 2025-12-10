@@ -27,13 +27,19 @@ namespace Muestra.Controllers
             _hubContext = hubContext;
         }
 
-        // --- VARIABLES DE CONFIGURACIÓN ---
+        // --- VARIABLES GLOBALES ---
         private static DateTime fechaEntrega = new DateTime(2025, 12, 10);
         private static IWebDriver? _driver;
         private static int ultimoAvisoEnviado = -999;
         private static readonly SemaphoreSlim _browserLock = new SemaphoreSlim(1, 1);
 
-        // --- 1. INICIAR BOT ---
+        // ⚠️ TU CADENA DE CONEXIÓN MAESTRA (Con tus datos reales)
+        // Si tu usuario no es SYSTEM, cámbialo aquí.
+        private const string CADENA_CONEXION = "User Id=SYSTEM;Password=Muestra.2025;Data Source=localhost:1521/XEPDB1;";
+
+        // ============================================================
+        // 1. INICIAR BOT (ABRIR CHROME)
+        // ============================================================
         [HttpGet("iniciar")]
         public IActionResult IniciarBot()
         {
@@ -43,6 +49,7 @@ namespace Muestra.Controllers
                 var options = new ChromeOptions();
                 string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
                 string path = Path.Combine(appData, "WhatsAppBot_Sesion_FINAL");
+                
                 if (!Directory.Exists(path)) Directory.CreateDirectory(path);
                 
                 options.AddArgument($"user-data-dir={path}");
@@ -57,15 +64,17 @@ namespace Muestra.Controllers
             catch (Exception ex) { return BadRequest("Error al abrir Chrome: " + ex.Message); }
         }
 
-        // --- 2. ACTIVAR (GUARDAR NUMERO) ---
+        // ============================================================
+        // 2. ACTIVAR (GUARDAR NÚMERO EN ORACLE)
+        // ============================================================
         [HttpGet("activar")]
         public IActionResult Activar([FromQuery] string telefono)
         {
             if (string.IsNullOrEmpty(telefono)) return BadRequest("Número vacío");
+
             try
             {
-                string connectionString = _configuration.GetConnectionString("MyDbConnection") ?? "";
-                using (OracleConnection con = new OracleConnection(connectionString))
+                using (OracleConnection con = new OracleConnection(CADENA_CONEXION))
                 {
                     con.Open();
                     string query = "INSERT INTO NUMEROS (TELEFONO) VALUES (:t)";
@@ -75,20 +84,25 @@ namespace Muestra.Controllers
                         cmd.ExecuteNonQuery();
                     }
                 }
-                return Ok("Guardado");
+                return Ok("Guardado correctamente.");
             }
-            catch (Exception ex) { return BadRequest("Error Oracle: " + ex.Message); }
+            catch (Exception ex) 
+            {
+                // Si falla, mostramos el error exacto
+                return BadRequest("Error Oracle: " + ex.Message); 
+            }
         }
 
-        // --- 3. VER NUMEROS ---
+        // ============================================================
+        // 3. VER NÚMEROS (CONSULTA ORACLE)
+        // ============================================================
         [HttpGet("ver-numeros")]
         public IActionResult VerNumeros()
         {
             var lista = new List<string>();
             try
             {
-                string connectionString = _configuration.GetConnectionString("MyDbConnection") ?? "";
-                using (OracleConnection con = new OracleConnection(connectionString))
+                using (OracleConnection con = new OracleConnection(CADENA_CONEXION))
                 {
                     con.Open();
                     string query = "SELECT TELEFONO FROM NUMEROS";
@@ -104,10 +118,15 @@ namespace Muestra.Controllers
                 }
                 return Ok(new { total = lista.Count, lista = lista });
             }
-            catch (Exception ex) { return BadRequest("Error Oracle: " + ex.Message); }
+            catch (Exception ex) 
+            { 
+                return BadRequest("Error Oracle: " + ex.Message); 
+            }
         }
 
-        // --- 4. VERIFICAR FECHAS (ENVIO MASIVO) ---
+        // ============================================================
+        // 4. VERIFICAR FECHAS (ENVÍO MASIVO)
+        // ============================================================
         [HttpGet("verificar-fechas")]
         public async Task<IActionResult> VerificarFechas()
         {
@@ -116,19 +135,21 @@ namespace Muestra.Controllers
             DateTime hoy = DateTime.Today;
             int diasRestantes = (int)(fechaEntrega - hoy).TotalDays;
 
+            // Anti-Spam
             if (diasRestantes == ultimoAvisoEnviado)
             {
                 await _hubContext.Clients.All.SendAsync("RecibirLog", "⚠️ SPAM DETECTADO: Ya enviaste mensajes hoy.");
                 return Ok(new { estado = "SPAM DETECTADO" });
             }
 
+            // Obtenemos los números llamando al método interno
             var actionResult = VerNumeros() as OkObjectResult;
-            if (actionResult?.Value == null) return BadRequest(new { estado = "Error BD" });
+            if (actionResult?.Value == null) return BadRequest(new { estado = "Error al leer BD (Nulo)" });
 
             dynamic data = actionResult.Value;
             List<string> numeros = data.lista;
 
-            if (numeros.Count == 0) return Ok(new { estado = "Sin números." });
+            if (numeros.Count == 0) return Ok(new { estado = "Sin números registrados." });
 
             await _hubContext.Clients.All.SendAsync("RecibirLog", $"🚀 Iniciando envío a {numeros.Count} usuarios...");
 
@@ -137,10 +158,9 @@ namespace Muestra.Controllers
 
             foreach (var num in numeros)
             {
-                // Llama a la función blindada
                 bool exito = EnviarMensajeSelenium(num, mensaje);
                 
-                string estado = exito ? "Enviado ✅" : "Falló ❌ (No tiene WhatsApp o Error)";
+                string estado = exito ? "Enviado ✅" : "Falló ❌ (Inválido o Error)";
                 await _hubContext.Clients.All.SendAsync("RecibirProgreso", num, estado);
                 
                 if (exito) enviados++;
@@ -152,64 +172,63 @@ namespace Muestra.Controllers
             return Ok(new { total = numeros.Count, enviados = enviados });
         }
 
-        // --- 5. TEST ENVIO ---
+        // ============================================================
+        // 5. TEST ENVIO UNITARIO
+        // ============================================================
         [HttpGet("test-envio")]
         public IActionResult TestEnvio(string telefono)
         {
             if (_driver == null) return BadRequest("Bot apagado.");
-            bool result = EnviarMensajeSelenium(telefono, "🤖 Prueba de conexión.");
+            bool result = EnviarMensajeSelenium(telefono, "🤖 Prueba de conexión del sistema.");
             return Ok(result ? "Enviado." : "Falló.");
         }
 
         // ============================================================
-        // 🛡️ FUNCIÓN BLINDADA PARA ENVIAR MENSAJES (PLAN A y PLAN B)
+        // 🛡️ LÓGICA DE ENVÍO BLINDADA (SIN ERRORES NO SUCH ELEMENT)
         // ============================================================
         private bool EnviarMensajeSelenium(string tel, string msj)
         {
-            _browserLock.Wait(); // Bloquea para que nadie interrumpa
+            _browserLock.Wait(); // Semáforo para orden
             try
             {
+                // 1. Navegar al chat
                 string url = $"https://web.whatsapp.com/send?phone={tel}&text={Uri.EscapeDataString(msj)}";
                 _driver!.Navigate().GoToUrl(url);
 
-                // Configuración de Espera: 20 segundos máximo
-                var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(20));
+                // 2. Esperar a que cargue el CHAT (No el botón, sino la caja de texto)
+                // Esto nos asegura que la página cargó bien.
+                var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(15));
                 
-                // IMPORTANTÍSIMO: Esto evita que el programa explote si no encuentra el botón de inmediato
-                wait.IgnoreExceptionTypes(typeof(NoSuchElementException));
-
                 try 
                 {
-                    // --- PLAN A: Buscar el botón 'Enviar' ---
-                    var btnEnviar = wait.Until(d => d.FindElement(By.CssSelector("span[data-icon='send']")));
-                    Thread.Sleep(800); // Pausa humana
-                    btnEnviar.Click();
-                }
-                catch (WebDriverTimeoutException)
-                {
-                    // --- PLAN B: Si no aparece el botón en 20 segs ---
-                    // Intentamos dar ENTER en el teclado (a veces el botón está oculto pero el foco está en el chat)
-                    try {
-                        _driver!.SwitchTo().ActiveElement().SendKeys(Keys.Enter);
-                    } 
-                    catch { 
-                        // Si falla el Plan B, asumimos que el número es inválido
-                        return false; 
-                    }
-                }
+                    // Buscamos la caja de texto primero para asegurar carga
+                    // (div[contenteditable='true'] es donde escribes en WA Web)
+                    var cajaTexto = wait.Until(d => d.FindElement(By.CssSelector("div[contenteditable='true']")));
+                    Thread.Sleep(1000); // Pausa para estabilidad
 
-                // Esperamos un poco para asegurar que salga el mensaje
-                Thread.Sleep(2000);
-                return true;
+                    // 3. ESTRATEGIA PRINCIPAL: PRESIONAR ENTER
+                    // En lugar de buscar el botón y arriesgarnos al error 'NoSuchElement',
+                    // simplemente le damos ENTER al teclado.
+                    cajaTexto.SendKeys(Keys.Enter);
+
+                    Thread.Sleep(2000); // Esperar a que salga
+                    return true;
+                }
+                catch (Exception)
+                {
+                    // Si falla encontrando la caja de texto, es porque el número no tiene WhatsApp
+                    // y salió el popup de "El número no es válido".
+                    return false; 
+                }
             }
             catch 
             {
-                // Si ocurre cualquier otro error raro, no cerramos el programa, solo retornamos false
+                // Cualquier otro error del navegador
                 return false; 
             }
             finally 
             { 
-                _browserLock.Release(); // Liberamos el turno siempre
+                _browserLock.Release(); // Liberar turno siempre
             }
         }
     }
