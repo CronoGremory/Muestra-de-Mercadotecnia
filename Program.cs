@@ -1,6 +1,6 @@
 using Microsoft.Extensions.FileProviders;
 using Muestra.Hubs; 
-using Oracle.ManagedDataAccess.Client; // <--- NECESARIO PARA QUE EL LOGIN FUNCIONE
+using Oracle.ManagedDataAccess.Client; 
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,11 +9,11 @@ var builder = WebApplication.CreateBuilder(args);
 // ==========================================
 
 builder.Services.AddControllersWithViews();
-builder.Services.AddSignalR(); // Servicio de Sockets
+builder.Services.AddSignalR(); 
 
-// 1.1 CONEXIÓN A BASE DE DATOS (ESTO FALTABA)
-// El '?? ""' arregla la advertencia amarilla de tu imagen.
-string connectionString = builder.Configuration.GetConnectionString("MyDbConnection") ?? "";
+// ⚠️ CONEXIÓN DIRECTA (HARDCODED) PARA EL LOGIN
+// Si falla XEPDB1, cambiaremos esto a XE más abajo
+string connectionString = "User Id=SYSTEM;Password=Muestra.2025;Data Source=localhost:1521/XEPDB1;";
 builder.Services.AddTransient<OracleConnection>(_ => new OracleConnection(connectionString));
 
 // Configuración de Sesión
@@ -28,7 +28,7 @@ builder.Services.AddSession(options =>
 var app = builder.Build();
 
 // ==========================================
-// 2. CONFIGURACIÓN DEL PIPELINE HTTP
+// 2. CONFIGURACIÓN DEL PIPELINE
 // ==========================================
 
 if (!app.Environment.IsDevelopment())
@@ -38,26 +38,19 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-// A) Habilitar carpeta wwwroot (por defecto)
 app.UseStaticFiles();
 
-// B) HABILITAR TUS CARPETAS PERSONALIZADAS (Arreglo del Error 404)
+// Carpetas Estáticas
 app.UseStaticFiles(new StaticFileOptions
 {
-    FileProvider = new PhysicalFileProvider(
-        Path.Combine(builder.Environment.ContentRootPath, "Modelos")),
+    FileProvider = new PhysicalFileProvider(Path.Combine(builder.Environment.ContentRootPath, "Modelos")),
     RequestPath = "/Modelos"
 });
-
 app.UseStaticFiles(new StaticFileOptions
 {
-    FileProvider = new PhysicalFileProvider(
-        Path.Combine(builder.Environment.ContentRootPath, "Estilos")),
+    FileProvider = new PhysicalFileProvider(Path.Combine(builder.Environment.ContentRootPath, "Estilos")),
     RequestPath = "/Estilos"
 });
-
-// Verificamos si existe Recursos para evitar errores si la carpeta no está
 string rutaRecursos = Path.Combine(builder.Environment.ContentRootPath, "Recursos");
 if (Directory.Exists(rutaRecursos))
 {
@@ -72,11 +65,7 @@ app.UseRouting();
 app.UseSession();
 app.UseAuthorization();
 
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
-
-// Mapear el Socket
+app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapHub<WhatsappHub>("/whatsappHub");
 
 app.Run();
