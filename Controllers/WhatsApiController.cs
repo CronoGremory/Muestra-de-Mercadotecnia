@@ -34,8 +34,8 @@ namespace Muestra.Controllers
         private static readonly SemaphoreSlim _browserLock = new SemaphoreSlim(1, 1);
 
         // ⚠️ CONEXIÓN DIRECTA CORREGIDA A 'XE' (Para el Bot)
-        private const string CADENA_CONEXION = "User Id=SYSTEM;Password=Muestra.2025;Data Source=localhost:1521/XE;";
-
+// CORRECCIÓN FINAL SEGÚN TU IMAGEN:
+        private const string CADENA_CONEXION = "User Id=MUESTRA_ADMIN;Password=Muestra.2025;Data Source=localhost:1521/XEPDB1;";
         // ============================================================
         // 1. INICIAR BOT (ABRIR CHROME)
         // ============================================================

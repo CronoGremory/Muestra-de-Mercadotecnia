@@ -11,8 +11,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR(); 
 
-// ⚠️ CONEXIÓN DIRECTA CORREGIDA A 'XE' (Para el Login)
-string connectionString = "User Id=SYSTEM;Password=Muestra.2025;Data Source=localhost:1521/XE;";
+// CORRECCIÓN FINAL SEGÚN TU IMAGEN:
+string connectionString = "User Id=MUESTRA_ADMIN;Password=Muestra.2025;Data Source=localhost:1521/XEPDB1;";
 builder.Services.AddTransient<OracleConnection>(_ => new OracleConnection(connectionString));
 
 // Configuración de Sesión
