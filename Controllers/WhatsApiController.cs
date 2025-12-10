@@ -33,11 +33,11 @@ namespace Muestra.Controllers
         private static int ultimoAvisoEnviado = -999;
         private static readonly SemaphoreSlim _browserLock = new SemaphoreSlim(1, 1);
 
-        // ⚠️ CONEXIÓN DIRECTA CORREGIDA A 'XE' (Para el Bot)
-// CORRECCIÓN FINAL SEGÚN TU IMAGEN:
+        // ⚠️ TUS CREDENCIALES CORRECTAS (MUESTRA_ADMIN + XEPDB1)
         private const string CADENA_CONEXION = "User Id=MUESTRA_ADMIN;Password=Muestra.2025;Data Source=localhost:1521/XEPDB1;";
+
         // ============================================================
-        // 1. INICIAR BOT (ABRIR CHROME)
+        // 1. INICIAR BOT
         // ============================================================
         [HttpGet("iniciar")]
         public IActionResult IniciarBot()
@@ -64,13 +64,12 @@ namespace Muestra.Controllers
         }
 
         // ============================================================
-        // 2. ACTIVAR (GUARDAR NÚMERO EN ORACLE)
+        // 2. ACTIVAR (GUARDAR NÚMERO)
         // ============================================================
         [HttpGet("activar")]
         public IActionResult Activar([FromQuery] string telefono)
         {
             if (string.IsNullOrEmpty(telefono)) return BadRequest("Número vacío");
-
             try
             {
                 using (OracleConnection con = new OracleConnection(CADENA_CONEXION))
@@ -85,14 +84,11 @@ namespace Muestra.Controllers
                 }
                 return Ok("Guardado correctamente.");
             }
-            catch (Exception ex) 
-            {
-                return BadRequest("Error Oracle: " + ex.Message); 
-            }
+            catch (Exception ex) { return BadRequest("Error Oracle: " + ex.Message); }
         }
 
         // ============================================================
-        // 3. VER NÚMEROS (CONSULTA ORACLE)
+        // 3. VER NÚMEROS
         // ============================================================
         [HttpGet("ver-numeros")]
         public IActionResult VerNumeros()
@@ -116,14 +112,11 @@ namespace Muestra.Controllers
                 }
                 return Ok(new { total = lista.Count, lista = lista });
             }
-            catch (Exception ex) 
-            { 
-                return BadRequest("Error Oracle: " + ex.Message); 
-            }
+            catch (Exception ex) { return BadRequest("Error Oracle: " + ex.Message); }
         }
 
         // ============================================================
-        // 4. VERIFICAR FECHAS (ENVÍO MASIVO)
+        // 4. ENVÍO MASIVO
         // ============================================================
         [HttpGet("verificar-fechas")]
         public async Task<IActionResult> VerificarFechas()
@@ -140,7 +133,7 @@ namespace Muestra.Controllers
             }
 
             var actionResult = VerNumeros() as OkObjectResult;
-            if (actionResult?.Value == null) return BadRequest(new { estado = "Error al leer BD (Nulo)" });
+            if (actionResult?.Value == null) return BadRequest(new { estado = "Error al leer BD" });
 
             dynamic data = actionResult.Value;
             List<string> numeros = data.lista;
@@ -155,7 +148,7 @@ namespace Muestra.Controllers
             foreach (var num in numeros)
             {
                 bool exito = EnviarMensajeSelenium(num, mensaje);
-                string estado = exito ? "Enviado ✅" : "Falló ❌ (Inválido o Error)";
+                string estado = exito ? "Enviado ✅" : "Falló ❌ (Número inválido)";
                 await _hubContext.Clients.All.SendAsync("RecibirProgreso", num, estado);
                 if (exito) enviados++;
             }
@@ -167,43 +160,59 @@ namespace Muestra.Controllers
         }
 
         // ============================================================
-        // 5. TEST ENVIO UNITARIO
+        // 5. TEST UNITARIO
         // ============================================================
         [HttpGet("test-envio")]
         public IActionResult TestEnvio(string telefono)
         {
             if (_driver == null) return BadRequest("Bot apagado.");
-            bool result = EnviarMensajeSelenium(telefono, "🤖 Prueba de conexión del sistema.");
-            return Ok(result ? "Enviado." : "Falló.");
+            bool result = EnviarMensajeSelenium(telefono, "🤖 Prueba de conexión.");
+            return Ok(result ? "Enviado." : "Falló (Revisa el número).");
         }
 
         // ============================================================
-        // 🛡️ LÓGICA DE ENVÍO BLINDADA (SIN ERRORES NO SUCH ELEMENT)
+        // 🛡️ MÉTODO DE ENVÍO BLINDADO (AQUÍ ESTABA EL ERROR)
         // ============================================================
         private bool EnviarMensajeSelenium(string tel, string msj)
         {
-            _browserLock.Wait(); 
+            _browserLock.Wait();
             try
             {
                 string url = $"https://web.whatsapp.com/send?phone={tel}&text={Uri.EscapeDataString(msj)}";
                 _driver!.Navigate().GoToUrl(url);
 
                 var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(15));
+                
+                // --- BLOQUE DE SEGURIDAD ---
+                // Aquí atrapamos el error "NoSuchElementException"
                 try 
                 {
+                    // Intentamos encontrar la caja de texto
                     var cajaTexto = wait.Until(d => d.FindElement(By.CssSelector("div[contenteditable='true']")));
-                    Thread.Sleep(1000); 
+                    
+                    // Si llegamos aquí, SÍ EXISTE el chat
+                    Thread.Sleep(1000);
                     cajaTexto.SendKeys(Keys.Enter);
-                    Thread.Sleep(2000); 
+                    Thread.Sleep(2000);
                     return true;
                 }
                 catch (Exception)
                 {
+                    // Si entra aquí, es porque NO encontró la caja de texto.
+                    // Significa que el número es inválido.
+                    // Retornamos FALSE para que el programa NO TRUENE.
                     return false; 
                 }
             }
-            catch { return false; }
-            finally { _browserLock.Release(); }
+            catch 
+            {
+                // Error general del navegador
+                return false; 
+            }
+            finally 
+            { 
+                _browserLock.Release(); 
+            }
         }
     }
 }
